@@ -43,7 +43,6 @@ export const PROTECTED_ROUTES = {
 export const API_ROUTES = {
   AUTH: {
     LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
     REFRESH: '/auth/refresh',
     FORGOT_PASSWORD: '/auth/forgot-password',
@@ -52,6 +51,7 @@ export const API_ROUTES = {
     ME: '/auth/me'
   },
   USERS: {
+    CREATE: '/user',
     PROFILE: '/users/profile',
     UPDATE_PROFILE: '/users/profile',
     CHANGE_PASSWORD: '/users/change-password',
@@ -133,7 +133,7 @@ export const RouteUtils = {
    * Obtiene la URL completa de la API
    */
   getApiUrl: (endpoint: string): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     return `${baseUrl}${endpoint}`;
   }
 };
