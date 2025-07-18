@@ -1,184 +1,117 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useAuthRoute } from '@/hooks/useAuthRedirect';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { PUBLIC_ROUTES } from '@/config/routes';
+import { useProtectedRoute } from '@/hooks/useAuthRedirect';
+import { useLanguage } from '@/context/LanguageContext';
+import { Sidebar } from '@/components/dashboard/Sidebar';
+import { OverviewModule } from '@/components/dashboard/OverviewModule';
+import { CamerasModule } from '@/components/dashboard/CamerasModule';
+import { ReportsModule } from '@/components/dashboard/ReportsModule';
+import { UsersModule } from '@/components/dashboard/UsersModule';
+import { COLORS } from '@/config/colors';
+
+type ActiveModule = 'overview' | 'cameras' | 'reports' | 'users' | 'parking' | 'analytics';
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { t } = useLanguage();
+  const [activeModule, setActiveModule] = useState<ActiveModule>('overview');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Proteger la ruta
-  const { isLoading } = useAuthRoute(PUBLIC_ROUTES.LOGIN);
+  const { isLoading } = useProtectedRoute();
 
-  const handleLogout = () => {
-    logout();
+  const renderActiveModule = () => {
+    switch (activeModule) {
+      case 'overview':
+        return <OverviewModule />;
+      case 'cameras':
+        return <CamerasModule />;
+      case 'reports':
+        return <ReportsModule />;
+      case 'users':
+        return <UsersModule />;
+      case 'parking':
+        return (
+          <div>
+            <h1 className="text-3xl font-bold mb-4" style={{ color: COLORS.text.dark }}>
+              {t('parking')}
+            </h1>
+            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+              <div 
+                className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: `${COLORS.primary.light}20`, color: COLORS.primary.medium }}
+              >
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2" style={{ color: COLORS.text.dark }}>
+                Módulo de Parking
+              </h3>
+              <p style={{ color: COLORS.text.light }}>
+                Este módulo estará disponible próximamente. Aquí podrás gestionar espacios de parking, 
+                ver ocupación en tiempo real y administrar reservas.
+              </p>
+            </div>
+          </div>
+        );
+      case 'analytics':
+        return (
+          <div>
+            <h1 className="text-3xl font-bold mb-4" style={{ color: COLORS.text.dark }}>
+              {t('analytics')}
+            </h1>
+            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+              <div 
+                className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: `${COLORS.primary.light}20`, color: COLORS.primary.medium }}
+              >
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2" style={{ color: COLORS.text.dark }}>
+                Módulo de Analíticas
+              </h3>
+              <p style={{ color: COLORS.text.light }}>
+                Este módulo estará disponible próximamente. Aquí podrás ver gráficos avanzados, 
+                métricas de rendimiento y análisis detallados del sistema.
+              </p>
+            </div>
+          </div>
+        );
+      default:
+        return <OverviewModule />;
+    }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div 
+            className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"
+            style={{ borderColor: COLORS.primary.medium }}
+          ></div>
+          <p style={{ color: COLORS.text.light }}>{t('loading')}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600">Bienvenido a Parkintia</p>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                {user?.avatar && (
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full"
-                  />
-                )}
-                <div className="text-sm">
-                  <p className="font-medium text-gray-900">{user?.name}</p>
-                  <p className="text-gray-600">{user?.email}</p>
-                </div>
-              </div>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-              >
-                Cerrar Sesión
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Welcome Card */}
-          <Card className="col-span-1 md:col-span-2 lg:col-span-3">
-            <div className="text-center py-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                ¡Bienvenido, {user?.name}! 🎉
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Has iniciado sesión correctamente en Parkintia. 
-                Este es tu dashboard personal donde podrás gestionar tus espacios de parking.
-              </p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
-                <p className="text-blue-800 text-sm">
-                  <strong>Estado:</strong> Sistema de autenticación funcionando correctamente ✅
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* User Info Card */}
-          <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Información de Usuario
-            </h3>
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium text-gray-500">Nombre</label>
-                <p className="text-gray-900">{user?.name}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Email</label>
-                <p className="text-gray-900">{user?.email}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Rol</label>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {user?.role}
-                </span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Quick Actions Card */}
-          <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Acciones Rápidas
-            </h3>
-            <div className="space-y-3">
-              <Button variant="primary" fullWidth>
-                Buscar Parking
-              </Button>
-              <Button variant="outline" fullWidth>
-                Mis Reservas
-              </Button>
-              <Button variant="ghost" fullWidth>
-                Configuración
-              </Button>
-            </div>
-          </Card>
-
-          {/* Stats Card */}
-          <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Estadísticas
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Reservas totales</span>
-                <span className="font-semibold text-gray-900">0</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Tiempo ahorrado</span>
-                <span className="font-semibold text-gray-900">0h</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Puntos acumulados</span>
-                <span className="font-semibold text-gray-900">0</span>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Getting Started Section */}
-        <div className="mt-8">
-          <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Siguientes Pasos
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">
-                  🔧 Conectar Backend
-                </h4>
-                <p className="text-sm text-gray-600 mb-3">
-                  Reemplaza las funciones simuladas en <code>auth.service.ts</code> con llamadas reales a tu API.
-                </p>
-                <Button variant="outline" size="sm">
-                  Ver documentación
-                </Button>
-              </div>
-              
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">
-                  🎨 Personalizar UI
-                </h4>
-                <p className="text-sm text-gray-600 mb-3">
-                  Modifica los componentes en <code>/components</code> para ajustar el diseño a tu marca.
-                </p>
-                <Button variant="outline" size="sm">
-                  Explorar componentes
-                </Button>
-              </div>
-            </div>
-          </Card>
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar
+        activeModule={activeModule}
+        onModuleSelect={(module) => setActiveModule(module as ActiveModule)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+      
+      <main className="flex-1 overflow-y-auto">
+        <div className="min-h-full p-6">
+          {renderActiveModule()}
         </div>
       </main>
     </div>
