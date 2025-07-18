@@ -3,6 +3,7 @@ export { Button } from './ui/Button';
 export { Input } from './ui/Input';
 export { Card } from './ui/Card';
 export { LoadingSpinner } from './ui/LoadingSpinner';
+export { default as VideoPlayer } from './ui/VideoPlayer';
 
 // Auth Components
 export { LoginForm } from './auth/LoginForm';
