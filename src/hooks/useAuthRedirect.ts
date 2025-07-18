@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { RouteUtils, PUBLIC_ROUTES, PROTECTED_ROUTES } from '@/config/routes';
+import { RouteUtils as _RouteUtils, PUBLIC_ROUTES, PROTECTED_ROUTES } from '@/config/routes';
 
 interface UseAuthRedirectOptions {
   redirectTo?: string;

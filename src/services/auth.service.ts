@@ -171,8 +171,8 @@ class AuthService {
             createdAt: new Date(),
             updatedAt: new Date()
           },
-          token: 'new-mock-jwt-token-' + Date.now(),
-          refreshToken: 'new-mock-refresh-token-' + Date.now()
+          token: `new-mock-jwt-token-${Date.now()}`,
+          refreshToken: `new-mock-refresh-token-${Date.now()}`
         });
       }, 1000);
     });
