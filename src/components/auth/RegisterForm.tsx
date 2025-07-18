@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { useAuthForm } from '@/hooks/useAuthForm';
+import { useLanguage } from '@/context/LanguageContext';
+import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { RegisterCredentials } from '@/types/auth';
+import { COLORS } from '@/config/colors';
 
 // Icons (reutilizando los mismos del LoginForm)
 const EmailIcon = () => (
@@ -51,6 +54,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
   onToggleMode
 }) => {
   const { handleRegister, formErrors, authError, isLoading } = useAuthForm();
+  const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [credentials, setCredentials] = useState<RegisterCredentials>({
@@ -78,23 +82,34 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Crear Cuenta</h2>
-        <p className="text-gray-600 mt-2">Únete a Parkintia hoy mismo</p>
+    <Card className="w-full max-w-md mx-auto" shadow="lg">
+      {/* Language Toggle */}
+      <div className="flex justify-end mb-4">
+        <LanguageToggle />
       </div>
 
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold mb-2" style={{ color: COLORS.text.dark }}>
+          {t('createYourAccount')}
+        </h2>
+        <p className="text-base" style={{ color: COLORS.text.light }}>
+          {t('createAccountDescription')}
+        </p>
+      </div>
+
+      {/* Error Alert */}
       {authError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700 text-sm">{authError.message}</p>
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <p className="text-red-700 text-sm font-medium">{authError.message}</p>
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-4">
+      {/* Form */}
+      <form onSubmit={onSubmit} className="space-y-5">
         <Input
           type="text"
-          label="Nombre completo"
-          placeholder="Tu nombre"
+          placeholder={t('fullName')}
           value={credentials.name}
           onChange={handleInputChange('name')}
           error={formErrors.name}
@@ -105,8 +120,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
         <Input
           type="email"
-          label="Email"
-          placeholder="tu@email.com"
+          placeholder={t('email')}
           value={credentials.email}
           onChange={handleInputChange('email')}
           error={formErrors.email}
@@ -118,8 +132,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         <div className="relative">
           <Input
             type={showPassword ? 'text' : 'password'}
-            label="Contraseña"
-            placeholder="Mínimo 6 caracteres"
+            placeholder={t('password')}
             value={credentials.password}
             onChange={handleInputChange('password')}
             error={formErrors.password}
@@ -129,8 +142,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
           />
           <button
             type="button"
-            className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+            className="absolute right-4 top-3 transition-colors duration-200"
+            style={{ color: COLORS.text.light }}
             onClick={() => setShowPassword(!showPassword)}
+            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.medium}
+            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text.light}
           >
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
@@ -139,8 +155,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         <div className="relative">
           <Input
             type={showConfirmPassword ? 'text' : 'password'}
-            label="Confirmar contraseña"
-            placeholder="Repite tu contraseña"
+            placeholder={t('confirmPassword')}
             value={credentials.confirmPassword}
             onChange={handleInputChange('confirmPassword')}
             error={formErrors.confirmPassword}
@@ -150,49 +165,60 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
           />
           <button
             type="button"
-            className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+            className="absolute right-4 top-3 transition-colors duration-200"
+            style={{ color: COLORS.text.light }}
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.medium}
+            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text.light}
           >
             {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         </div>
 
-        <div className="text-sm">
-          <label className="flex items-start">
-            <input type="checkbox" className="mr-2 mt-1" required />
-            <span className="text-gray-600">
-              Acepto los{' '}
-              <a href="#" className="text-blue-600 hover:text-blue-800">
-                términos y condiciones
-              </a>
-              {' '}y la{' '}
-              <a href="#" className="text-blue-600 hover:text-blue-800">
-                política de privacidad
-              </a>
-            </span>
-          </label>
+        {/* Terms and Conditions */}
+        <div className="flex items-start space-x-3">
+          <input 
+            type="checkbox" 
+            className="w-4 h-4 mt-1 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2" 
+            style={{ accentColor: COLORS.primary.medium }}
+            required 
+          />
+          <p className="text-sm leading-relaxed" style={{ color: COLORS.text.light }}>
+            {t('agreeToTerms')}
+          </p>
         </div>
 
+        {/* Sign Up Button */}
         <Button
           type="submit"
           variant="primary"
           size="lg"
           fullWidth
           isLoading={isLoading}
+          style={{ 
+            marginTop: '2rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            fontWeight: 'bold'
+          }}
         >
-          Crear Cuenta
+          {isLoading ? t('creating') : t('createAccount')}
         </Button>
       </form>
 
+      {/* Login Link */}
       {showLoginLink && (
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            ¿Ya tienes cuenta?{' '}
+        <div className="mt-8 text-center">
+          <p style={{ color: COLORS.text.light }}>
+            {t('alreadyHaveAccount')}{' '}
             <button
               onClick={onToggleMode}
-              className="text-blue-600 hover:text-blue-800 font-medium"
+              className="font-semibold transition-colors duration-200"
+              style={{ color: COLORS.primary.medium }}
+              onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.dark}
+              onMouseLeave={(e) => e.currentTarget.style.color = COLORS.primary.medium}
             >
-              Inicia sesión
+              {t('signIn')}
             </button>
           </p>
         </div>

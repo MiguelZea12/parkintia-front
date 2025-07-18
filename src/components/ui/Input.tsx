@@ -2,17 +2,18 @@
 
 import React, { forwardRef } from 'react';
 import { InputProps } from '@/types/ui';
+import { COLORS } from '@/config/colors';
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, icon, fullWidth = false, className = '', ...props }, ref) => {
-    const baseInputClasses = 'block px-3 py-2 border rounded-lg text-sm placeholder-gray-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+  ({ label, error, icon, fullWidth = false, className = '', style, ...props }, ref) => {
+    const baseInputClasses = 'block px-4 py-3 border-2 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:ring-0 placeholder:text-gray-400 text-gray-900';
     
     const errorClasses = error 
-      ? 'border-red-300 bg-red-50 focus:ring-red-500' 
-      : 'border-gray-300 bg-white hover:border-gray-400 focus:border-blue-500';
+      ? 'border-red-300 bg-red-50 focus:border-red-500' 
+      : 'border-gray-200 bg-white hover:border-gray-300 focus:border-blue-500';
     
     const widthClass = fullWidth ? 'w-full' : '';
-    const iconPadding = icon ? 'pl-10' : '';
+    const iconPadding = icon ? 'pl-12' : '';
     
     const inputClassName = [
       baseInputClasses,
@@ -22,17 +23,37 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       className
     ].filter(Boolean).join(' ');
 
+    const customStyle = {
+      backgroundColor: error ? '#FEF2F2' : COLORS.secondary.green,
+      borderColor: error ? '#FCA5A5' : '#E5E7EB',
+      color: '#111827', // Forzar texto oscuro
+      ...style,
+      ...(props.disabled && {
+        backgroundColor: '#F9FAFB',
+        borderColor: '#D1D5DB',
+        color: '#6B7280'
+      })
+    };
+
+    const focusStyle = !error ? {
+      '&:focus': {
+        borderColor: COLORS.primary.medium,
+        backgroundColor: COLORS.secondary.white,
+        boxShadow: `0 0 0 3px ${COLORS.primary.light}20`
+      }
+    } : {};
+
     return (
       <div className={fullWidth ? 'w-full' : ''}>
         {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.text.dark }}>
             {label}
           </label>
         )}
         
         <div className="relative">
           {icon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none" style={{ color: COLORS.text.light }}>
               {icon}
             </div>
           )}
@@ -40,12 +61,31 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             className={inputClassName}
+            style={customStyle}
+            onFocus={(e) => {
+              if (!error) {
+                e.target.style.borderColor = COLORS.primary.medium;
+                e.target.style.backgroundColor = COLORS.secondary.white;
+                e.target.style.boxShadow = `0 0 0 3px ${COLORS.primary.light}20`;
+                e.target.style.color = '#111827'; // Mantener texto oscuro
+              }
+              props.onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              if (!error) {
+                e.target.style.borderColor = '#E5E7EB';
+                e.target.style.backgroundColor = COLORS.secondary.green;
+                e.target.style.boxShadow = 'none';
+                e.target.style.color = '#111827'; // Mantener texto oscuro
+              }
+              props.onBlur?.(e);
+            }}
             {...props}
           />
         </div>
         
         {error && (
-          <p className="mt-1 text-sm text-red-600">
+          <p className="mt-2 text-sm text-red-600 font-medium">
             {error}
           </p>
         )}

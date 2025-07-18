@@ -5,9 +5,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { useAuthForm } from '@/hooks/useAuthForm';
+import { useLanguage } from '@/context/LanguageContext';
+import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { LoginCredentials } from '@/types/auth';
+import { COLORS } from '@/config/colors';
 
-// Icons (puedes reemplazar con tu librería de iconos preferida)
+// Icons mejorados
 const EmailIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
@@ -45,6 +48,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onToggleMode
 }) => {
   const { handleLogin, formErrors, authError, isLoading } = useAuthForm();
+  const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: '',
@@ -69,23 +73,34 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Iniciar Sesión</h2>
-        <p className="text-gray-600 mt-2">Accede a tu cuenta de Parkintia</p>
+    <Card className="w-full max-w-md mx-auto" shadow="lg">
+      {/* Language Toggle */}
+      <div className="flex justify-end mb-4">
+        <LanguageToggle />
       </div>
 
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold mb-2" style={{ color: COLORS.text.dark }}>
+          {t('welcomeBack')}
+        </h2>
+        <p className="text-base" style={{ color: COLORS.text.light }}>
+          {t('signInDescription')}
+        </p>
+      </div>
+
+      {/* Error Alert */}
       {authError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700 text-sm">{authError.message}</p>
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <p className="text-red-700 text-sm font-medium">{authError.message}</p>
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-4">
+      {/* Form */}
+      <form onSubmit={onSubmit} className="space-y-6">
         <Input
           type="email"
-          label="Email"
-          placeholder="tu@email.com"
+          placeholder={t('email')}
           value={credentials.email}
           onChange={handleInputChange('email')}
           error={formErrors.email}
@@ -97,8 +112,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         <div className="relative">
           <Input
             type={showPassword ? 'text' : 'password'}
-            label="Contraseña"
-            placeholder="Tu contraseña"
+            placeholder={t('password')}
             value={credentials.password}
             onChange={handleInputChange('password')}
             error={formErrors.password}
@@ -108,51 +122,79 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           />
           <button
             type="button"
-            className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+            className="absolute right-4 top-3 transition-colors duration-200"
+            style={{ color: COLORS.text.light }}
             onClick={() => setShowPassword(!showPassword)}
+            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.medium}
+            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text.light}
           >
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         </div>
 
-        <div className="flex items-center justify-between text-sm">
+        {/* Remember me and Forgot password */}
+        <div className="flex items-center justify-between">
           <label className="flex items-center">
-            <input type="checkbox" className="mr-2" />
-            <span className="text-gray-600">Recordarme</span>
+            <input 
+              type="checkbox" 
+              className="w-4 h-4 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
+              style={{ accentColor: COLORS.primary.medium }}
+            />
+            <span className="ml-2 text-sm" style={{ color: COLORS.text.light }}>
+              {t('rememberMe')}
+            </span>
           </label>
-          <a href="#" className="text-blue-600 hover:text-blue-800">
-            ¿Olvidaste tu contraseña?
-          </a>
+          <button
+            type="button"
+            className="text-sm font-medium transition-colors duration-200"
+            style={{ color: COLORS.primary.medium }}
+            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.dark}
+            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.primary.medium}
+          >
+            {t('forgotPassword')}
+          </button>
         </div>
 
+        {/* Login Button */}
         <Button
           type="submit"
           variant="primary"
           size="lg"
           fullWidth
           isLoading={isLoading}
+          style={{ 
+            marginTop: '2rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            fontWeight: 'bold'
+          }}
         >
-          Iniciar Sesión
+          {isLoading ? t('signingIn') : t('signIn')}
         </Button>
       </form>
 
+      {/* Register Link */}
       {showRegisterLink && (
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            ¿No tienes cuenta?{' '}
+        <div className="mt-8 text-center">
+          <p style={{ color: COLORS.text.light }}>
+            {t('noAccount')}{' '}
             <button
               onClick={onToggleMode}
-              className="text-blue-600 hover:text-blue-800 font-medium"
+              className="font-semibold transition-colors duration-200"
+              style={{ color: COLORS.primary.medium }}
+              onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.dark}
+              onMouseLeave={(e) => e.currentTarget.style.color = COLORS.primary.medium}
             >
-              Regístrate aquí
+              {t('signUp')}
             </button>
           </p>
         </div>
       )}
 
-      <div className="mt-4 text-center">
-        <p className="text-xs text-gray-500">
-          Demo: usa <code className="bg-gray-100 px-1 rounded">demo@parkintia.com</code> / <code className="bg-gray-100 px-1 rounded">demo123</code>
+      {/* Demo Credentials */}
+      <div className="mt-6 p-4 rounded-xl" style={{ backgroundColor: `${COLORS.secondary.green}40` }}>
+        <p className="text-xs text-center font-medium" style={{ color: COLORS.text.light }}>
+          Demo: <span className="font-mono bg-white px-2 py-1 rounded">demo@parkintia.com</span> / <span className="font-mono bg-white px-2 py-1 rounded">demo123</span>
         </p>
       </div>
     </Card>
