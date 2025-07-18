@@ -1,11 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { COLORS } from '@/config/colors';
+import { cameraService, CameraData, CameraStats } from '@/services/camera.service';
+import VideoPlayer from '@/components/ui/VideoPlayer';
+import VideoModal from '@/components/ui/VideoModal';
 
 interface Camera {
   id: string;
@@ -15,6 +18,11 @@ interface Camera {
   isActive: boolean;
   lastActivity: string;
   stream?: string;
+  // Nuevos campos para datos reales
+  occupiedSpaces?: number;
+  emptySpaces?: number;
+  totalSpaces?: number;
+  occupancyRate?: number;
 }
 
 const mockCameras: Camera[] = [
@@ -52,10 +60,16 @@ const mockCameras: Camera[] = [
   }
 ];
 
-const CameraCard: React.FC<{ camera: Camera; onEdit: (camera: Camera) => void; onDelete: (id: string) => void }> = ({
+const CameraCard: React.FC<{ 
+  camera: Camera; 
+  onEdit: (camera: Camera) => void; 
+  onDelete: (id: string) => void;
+  onViewVideo: (camera: Camera) => void;
+}> = ({
   camera,
   onEdit,
-  onDelete
+  onDelete,
+  onViewVideo
 }) => {
   const { t } = useLanguage();
 
@@ -76,6 +90,16 @@ const CameraCard: React.FC<{ camera: Camera; onEdit: (camera: Camera) => void; o
           </div>
         </div>
         <div className="flex space-x-2">
+          <button
+            onClick={() => onViewVideo(camera)}
+            className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
+            style={{ color: COLORS.primary.medium }}
+            title="Ver en pantalla completa"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
           <button
             onClick={() => onEdit(camera)}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -99,40 +123,69 @@ const CameraCard: React.FC<{ camera: Camera; onEdit: (camera: Camera) => void; o
 
       {/* Camera Preview */}
       <div 
-        className="w-full h-32 rounded-lg mb-4 flex items-center justify-center"
+        className="w-full h-32 rounded-lg mb-4 overflow-hidden"
         style={{ backgroundColor: `${COLORS.primary.light}10` }}
       >
-        {camera.status === 'online' ? (
-          <div className="text-center">
-            <svg className="w-8 h-8 mx-auto mb-2" style={{ color: COLORS.primary.medium }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            <p className="text-xs" style={{ color: COLORS.text.light }}>Live Stream</p>
-          </div>
-        ) : (
-          <div className="text-center">
-            <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 21l-3-3m0 0L5.636 5.636M15 12H9m6 0a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <p className="text-xs text-gray-400">Offline</p>
-          </div>
-        )}
+        <VideoPlayer 
+          isOnline={camera.status === 'online'} 
+          cameraName={camera.name}
+          className="rounded-lg"
+        />
       </div>
 
       {/* Camera Info */}
-      <div className="flex items-center justify-between text-sm">
-        <span style={{ color: COLORS.text.light }}>
-          {t('lastLogin')}: {camera.lastActivity}
-        </span>
-        <span 
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            camera.status === 'online' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
-          }`}
-        >
-          {t(camera.status)}
-        </span>
+      <div className="space-y-3">
+        {/* Estadísticas de ocupación */}
+        {camera.totalSpaces && (
+          <div className="bg-gray-50 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium" style={{ color: COLORS.text.dark }}>
+                Ocupación del Parking
+              </span>
+              <span className="text-sm font-bold" style={{ color: COLORS.primary.medium }}>
+                {camera.occupancyRate?.toFixed(1)}%
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="text-center">
+                <div className="font-semibold text-green-600">{camera.occupiedSpaces}</div>
+                <div style={{ color: COLORS.text.light }}>Ocupados</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-blue-600">{camera.emptySpaces}</div>
+                <div style={{ color: COLORS.text.light }}>Libres</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold" style={{ color: COLORS.text.dark }}>{camera.totalSpaces}</div>
+                <div style={{ color: COLORS.text.light }}>Total</div>
+              </div>
+            </div>
+            
+            {/* Barra de progreso */}
+            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${camera.occupancyRate || 0}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between text-sm">
+          <span style={{ color: COLORS.text.light }}>
+            {t('lastLogin')}: {camera.lastActivity}
+          </span>
+          <span 
+            className={`px-2 py-1 rounded-full text-xs font-medium ${
+              camera.status === 'online' 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-red-100 text-red-800'
+            }`}
+          >
+            {t(camera.status)}
+          </span>
+        </div>
       </div>
     </Card>
   );
@@ -144,6 +197,76 @@ export const CamerasModule: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCamera, setEditingCamera] = useState<Camera | null>(null);
+  const [cameraData, setCameraData] = useState<CameraData[]>([]);
+  const [cameraStats, setCameraStats] = useState<CameraStats>({
+    totalSpaces: 0,
+    occupiedSpaces: 0,
+    emptySpaces: 0,
+    occupancyRate: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<string>('');
+  const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  
+  // Estados para el formulario
+  const [formData, setFormData] = useState({
+    name: '',
+    location: '',
+    status: 'online' as 'online' | 'offline'
+  });
+
+  // Cargar datos de las cámaras al montar el componente
+  useEffect(() => {
+    loadCameraData();
+    // Actualizar datos cada 30 segundos
+    const interval = setInterval(loadCameraData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Manejar tecla ESC para cerrar modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showVideoModal) {
+        handleCloseVideoModal();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showVideoModal]);
+
+  const loadCameraData = async () => {
+    try {
+      const data = await cameraService.getAllCameraData();
+      const stats = cameraService.calculateCameraStats(data);
+      
+      setCameraData(data);
+      setCameraStats(stats);
+      setLastUpdate(new Date().toLocaleTimeString());
+      
+      // Actualizar datos de las cámaras mock con datos reales
+      if (data.length > 0) {
+        const latestData = data[data.length - 1];
+        setCameras(prevCameras => 
+          prevCameras.map((camera, index) => ({
+            ...camera,
+            occupiedSpaces: latestData.count_cars,
+            emptySpaces: latestData.empty_spaces,
+            totalSpaces: latestData.count_cars + latestData.empty_spaces,
+            occupancyRate: stats.occupancyRate,
+            status: 'online' as const,
+            isActive: true,
+            lastActivity: latestData.time_video_sg
+          }))
+        );
+      }
+    } catch (error) {
+      console.error('Error loading camera data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredCameras = cameras.filter(camera =>
     camera.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -155,6 +278,11 @@ export const CamerasModule: React.FC = () => {
 
   const handleEdit = (camera: Camera) => {
     setEditingCamera(camera);
+    setFormData({
+      name: camera.name,
+      location: camera.location,
+      status: camera.status
+    });
     setShowAddForm(true);
   };
 
@@ -163,8 +291,64 @@ export const CamerasModule: React.FC = () => {
   };
 
   const handleSave = () => {
+    if (!formData.name.trim() || !formData.location.trim()) {
+      alert('Por favor completa todos los campos');
+      return;
+    }
+
+    if (editingCamera) {
+      // Editar cámara existente
+      setCameras(cameras.map(camera => 
+        camera.id === editingCamera.id 
+          ? {
+              ...camera,
+              name: formData.name.trim(),
+              location: formData.location.trim(),
+              status: formData.status,
+              isActive: formData.status === 'online',
+              lastActivity: formData.status === 'online' ? 'Just now' : '1 hour ago'
+            }
+          : camera
+      ));
+    } else {
+      // Agregar nueva cámara
+      const newCamera: Camera = {
+        id: `cam-${Date.now()}`,
+        name: formData.name.trim(),
+        location: formData.location.trim(),
+        status: formData.status,
+        isActive: formData.status === 'online',
+        lastActivity: formData.status === 'online' ? 'Just now' : 'Never'
+      };
+      setCameras([...cameras, newCamera]);
+    }
+
+    // Resetear formulario
+    setFormData({ name: '', location: '', status: 'online' });
     setShowAddForm(false);
     setEditingCamera(null);
+  };
+
+  const handleOpenAddForm = () => {
+    setFormData({ name: '', location: '', status: 'online' });
+    setEditingCamera(null);
+    setShowAddForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setFormData({ name: '', location: '', status: 'online' });
+    setShowAddForm(false);
+    setEditingCamera(null);
+  };
+
+  const handleViewVideo = (camera: Camera) => {
+    setSelectedCamera(camera);
+    setShowVideoModal(true);
+  };
+
+  const handleCloseVideoModal = () => {
+    setSelectedCamera(null);
+    setShowVideoModal(false);
   };
 
   return (
@@ -176,33 +360,52 @@ export const CamerasModule: React.FC = () => {
             {t('cameraManagement')}
           </h1>
           <p className="text-lg mt-1" style={{ color: COLORS.text.light }}>
-            {t('activeCameras')}: {activeCameras.length} / {cameras.length}
+            {loading 
+              ? 'Cargando datos...' 
+              : `Ocupación: ${cameraStats.occupiedSpaces}/${cameraStats.totalSpaces} espacios (${cameraStats.occupancyRate.toFixed(1)}%)`
+            }
           </p>
         </div>
-        <Button
-          variant="primary"
-          onClick={() => setShowAddForm(true)}
-          style={{ 
-            background: COLORS.gradients.primary 
-          }}
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          {t('addCamera')}
-        </Button>
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="outline"
+            onClick={loadCameraData}
+            disabled={loading}
+            style={{ 
+              borderColor: COLORS.primary.medium,
+              color: COLORS.primary.medium 
+            }}
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {loading ? 'Actualizando...' : 'Actualizar'}
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleOpenAddForm}
+            style={{ 
+              background: COLORS.gradients.primary 
+            }}
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            {t('addCamera')}
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
-                {t('activeCameras')}
+                Espacios Ocupados
               </p>
               <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
-                {activeCameras.length}
+                {loading ? '...' : cameraStats.occupiedSpaces}
               </p>
             </div>
             <div 
@@ -210,7 +413,7 @@ export const CamerasModule: React.FC = () => {
               style={{ backgroundColor: '#10B98120', color: '#10B981' }}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           </div>
@@ -220,18 +423,18 @@ export const CamerasModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
-                {t('inactiveCameras')}
+                Espacios Libres
               </p>
               <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
-                {inactiveCameras.length}
+                {loading ? '...' : cameraStats.emptySpaces}
               </p>
             </div>
             <div 
               className="p-3 rounded-full"
-              style={{ backgroundColor: '#EF444420', color: '#EF4444' }}
+              style={{ backgroundColor: '#3B82F620', color: '#3B82F6' }}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 21l-3-3m0 0L5.636 5.636M15 12H9m6 0a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
@@ -241,10 +444,10 @@ export const CamerasModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
-                Total Cameras
+                Total Espacios
               </p>
               <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
-                {cameras.length}
+                {loading ? '...' : cameraStats.totalSpaces}
               </p>
             </div>
             <div 
@@ -257,7 +460,57 @@ export const CamerasModule: React.FC = () => {
             </div>
           </div>
         </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
+                Tasa Ocupación
+              </p>
+              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
+                {loading ? '...' : `${cameraStats.occupancyRate.toFixed(1)}%`}
+              </p>
+            </div>
+            <div 
+              className="p-3 rounded-full"
+              style={{ 
+                backgroundColor: cameraStats.occupancyRate > 80 ? '#EF444420' : '#F59E0B20', 
+                color: cameraStats.occupancyRate > 80 ? '#EF4444' : '#F59E0B' 
+              }}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+          </div>
+        </Card>
       </div>
+
+      {/* Información de actualización */}
+      {lastUpdate && (
+        <Card className="p-4">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span style={{ color: COLORS.text.light }}>
+                Datos en tiempo real - Última actualización: {lastUpdate}
+              </span>
+            </div>
+            <div className="flex items-center space-x-4 text-xs">
+              {cameraData.length > 0 && (
+                <>
+                  <span style={{ color: COLORS.text.light }}>
+                    Datos del video: {cameraData[cameraData.length - 1]?.time_video_sg}
+                  </span>
+                  <span style={{ color: COLORS.text.light }}>
+                    Total registros: {cameraData.length}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Search and Filters */}
       <Card className="p-6">
@@ -294,6 +547,7 @@ export const CamerasModule: React.FC = () => {
             camera={camera}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onViewVideo={handleViewVideo}
           />
         ))}
       </div>
@@ -324,19 +578,22 @@ export const CamerasModule: React.FC = () => {
                 <Input
                   type="text"
                   placeholder={t('cameraName')}
-                  defaultValue={editingCamera?.name}
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   fullWidth
                 />
                 <Input
                   type="text"
                   placeholder={t('cameraLocation')}
-                  defaultValue={editingCamera?.location}
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                   fullWidth
                 />
                 <select 
                   className="w-full px-4 py-3 border rounded-xl"
                   style={{ borderColor: COLORS.primary.light }}
-                  defaultValue={editingCamera?.status}
+                  value={formData.status}
+                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'online' | 'offline' }))}
                 >
                   <option value="online">{t('online')}</option>
                   <option value="offline">{t('offline')}</option>
@@ -345,7 +602,7 @@ export const CamerasModule: React.FC = () => {
               <div className="flex space-x-3 mt-6">
                 <Button
                   variant="secondary"
-                  onClick={() => setShowAddForm(false)}
+                  onClick={handleCloseForm}
                   fullWidth
                 >
                   {t('cancel')}
@@ -363,6 +620,15 @@ export const CamerasModule: React.FC = () => {
           </Card>
         </div>
       )}
+
+      {/* Video Modal */}
+      <VideoModal
+        isOpen={showVideoModal}
+        onClose={handleCloseVideoModal}
+        cameraName={selectedCamera?.name || ''}
+        cameraLocation={selectedCamera?.location || ''}
+        isOnline={selectedCamera?.status === 'online'}
+      />
     </div>
   );
 };
