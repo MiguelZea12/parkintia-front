@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { RouteUtils, PUBLIC_ROUTES, PROTECTED_ROUTES } from '@/config/routes';
 
 interface UseAuthRedirectOptions {
   redirectTo?: string;
@@ -11,7 +12,7 @@ interface UseAuthRedirectOptions {
 }
 
 export const useAuthRedirect = ({
-  redirectTo = '/',
+  redirectTo = PUBLIC_ROUTES.HOME,
   redirectIfAuthenticated = false,
   redirectIfUnauthenticated = false
 }: UseAuthRedirectOptions = {}) => {
@@ -34,7 +35,7 @@ export const useAuthRedirect = ({
 };
 
 // Hook especializado para proteger rutas
-export const useProtectedRoute = (redirectTo: string = '/login') => {
+export const useProtectedRoute = (redirectTo: string = PUBLIC_ROUTES.LOGIN) => {
   return useAuthRedirect({
     redirectTo,
     redirectIfUnauthenticated: true
@@ -42,7 +43,7 @@ export const useProtectedRoute = (redirectTo: string = '/login') => {
 };
 
 // Hook especializado para rutas de autenticación (login, register)
-export const useAuthRoute = (redirectTo: string = '/dashboard') => {
+export const useAuthRoute = (redirectTo: string = PROTECTED_ROUTES.DASHBOARD) => {
   return useAuthRedirect({
     redirectTo,
     redirectIfAuthenticated: true

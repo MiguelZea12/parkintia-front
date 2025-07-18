@@ -4,19 +4,20 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { useAuthRoute } from '@/hooks/useAuthRedirect';
+import { PUBLIC_ROUTES, PROTECTED_ROUTES } from '@/config/routes';
 
 export default function LoginPage() {
   const router = useRouter();
   
   // Redirigir si ya está autenticado
-  const { isLoading } = useAuthRoute('/dashboard');
+  const { isLoading } = useAuthRoute(PROTECTED_ROUTES.DASHBOARD);
 
   const handleLoginSuccess = () => {
-    router.push('/dashboard');
+    router.push(PROTECTED_ROUTES.DASHBOARD);
   };
 
   const goToRegister = () => {
-    router.push('/register');
+    router.push(PUBLIC_ROUTES.REGISTER);
   };
 
   if (isLoading) {

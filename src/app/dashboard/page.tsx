@@ -5,12 +5,13 @@ import { useAuth } from '@/context/AuthContext';
 import { useProtectedRoute } from '@/hooks/useAuthRedirect';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { PUBLIC_ROUTES } from '@/config/routes';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
   
   // Proteger la ruta
-  const { isLoading } = useProtectedRoute('/login');
+  const { isLoading } = useProtectedRoute(PUBLIC_ROUTES.LOGIN);
 
   const handleLogout = () => {
     logout();

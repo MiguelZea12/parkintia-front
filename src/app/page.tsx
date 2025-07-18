@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { PUBLIC_ROUTES, PROTECTED_ROUTES } from "@/config/routes";
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -12,9 +13,9 @@ export default function Home() {
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) {
-        router.push('/dashboard');
+        router.push(PROTECTED_ROUTES.DASHBOARD);
       } else {
-        router.push('/login');
+        router.push(PUBLIC_ROUTES.LOGIN);
       }
     }
   }, [isAuthenticated, isLoading, router]);

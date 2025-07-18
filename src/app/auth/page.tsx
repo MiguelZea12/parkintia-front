@@ -5,16 +5,17 @@ import { useRouter } from 'next/navigation';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { RegisterForm } from '@/components/auth/RegisterForm';
 import { useAuthRoute } from '@/hooks/useAuthRedirect';
+import { PROTECTED_ROUTES } from '@/config/routes';
 
 export default function AuthPage() {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const router = useRouter();
   
   // Redirigir si ya está autenticado
-  const { isLoading } = useAuthRoute('/dashboard');
+  const { isLoading } = useAuthRoute(PROTECTED_ROUTES.DASHBOARD);
 
   const handleAuthSuccess = () => {
-    router.push('/dashboard');
+    router.push(PROTECTED_ROUTES.DASHBOARD);
   };
 
   const toggleMode = () => {

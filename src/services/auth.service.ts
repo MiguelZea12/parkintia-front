@@ -1,11 +1,12 @@
 import { LoginCredentials, RegisterCredentials, AuthResponse, User, UserRole } from '@/types/auth';
+import { API_ROUTES, RouteUtils } from '@/config/routes';
 
 // Configuración base de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 class AuthService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = RouteUtils.getApiUrl(endpoint);
     const token = localStorage.getItem('auth_token');
     
     const config: RequestInit = {
@@ -60,7 +61,7 @@ class AuthService {
     });
 
     // Cuando conectes con el backend, reemplaza lo anterior con:
-    // return this.request<AuthResponse>('/auth/login', {
+    // return this.request<AuthResponse>(API_ROUTES.AUTH.LOGIN, {
     //   method: 'POST',
     //   body: JSON.stringify(credentials),
     // });
@@ -99,7 +100,7 @@ class AuthService {
     });
 
     // Para backend real:
-    // return this.request<AuthResponse>('/auth/register', {
+    // return this.request<AuthResponse>(API_ROUTES.AUTH.REGISTER, {
     //   method: 'POST',
     //   body: JSON.stringify(credentials),
     // });
@@ -126,12 +127,12 @@ class AuthService {
     });
 
     // Para backend real:
-    // return this.request<User>('/auth/validate');
+    // return this.request<User>(API_ROUTES.AUTH.ME);
   }
 
   async getCurrentUser(): Promise<User> {
     // Para backend real:
-    // return this.request<User>('/auth/me');
+    // return this.request<User>(API_ROUTES.AUTH.ME);
     
     // Simulación
     return this.validateToken(localStorage.getItem('auth_token') || '');
@@ -139,7 +140,7 @@ class AuthService {
 
   async logout(): Promise<void> {
     // Para backend real (opcional - invalidar token en servidor):
-    // return this.request<void>('/auth/logout', { method: 'POST' });
+    // return this.request<void>(API_ROUTES.AUTH.LOGOUT, { method: 'POST' });
     
     // Por ahora solo simulamos
     return Promise.resolve();
@@ -152,7 +153,7 @@ class AuthService {
     }
 
     // Para backend real:
-    // return this.request<AuthResponse>('/auth/refresh', {
+    // return this.request<AuthResponse>(API_ROUTES.AUTH.REFRESH, {
     //   method: 'POST',
     //   body: JSON.stringify({ refreshToken }),
     // });

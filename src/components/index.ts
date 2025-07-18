@@ -7,3 +7,12 @@ export { LoadingSpinner } from './ui/LoadingSpinner';
 // Auth Components
 export { LoginForm } from './auth/LoginForm';
 export { RegisterForm } from './auth/RegisterForm';
+
+// Configuration & Routes
+export * from '../config/routes';
+
+// Hooks
+export { useAuth } from '../context/AuthContext';
+export { useAuthForm } from '../hooks/useAuthForm';
+export { useAuthRedirect, useProtectedRoute, useAuthRoute } from '../hooks/useAuthRedirect';
+export { useNavigation } from '../hooks/useNavigation';
