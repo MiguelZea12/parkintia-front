@@ -34,65 +34,119 @@ class AuthService {
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    try {
-      const response = await this.request<any>(API_ROUTES.AUTH.LOGIN, {
-        method: 'POST',
-        body: JSON.stringify(credentials),
-      });
+    // MODO DEMO: Simulación de login - comentar cuando tengas backend real
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Simulación básica de validación
+        if (credentials.email === 'demo@parkintia.com' && credentials.password === 'demo123') {
+          const mockUser: User = {
+            id: '1',
+            email: credentials.email,
+            name: 'Usuario Demo',
+            role: UserRole.USER,
+            avatar: 'https://ui-avatars.com/api/?name=Usuario+Demo',
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          
+          resolve({
+            user: mockUser,
+            token: 'mock-jwt-token-123',
+            refreshToken: 'mock-refresh-token-456'
+          });
+        } else {
+          reject(new Error('Credenciales inválidas'));
+        }
+      }, 1500); // Simula latencia de red
+    });
 
-      // El backend devuelve { user: {...}, access_token: "..." }
-      // Adaptamos la respuesta al formato que espera el frontend
-      return {
-        user: {
-          id: response.user.id,
-          email: response.user.email,
-          name: response.user.name || response.user.email.split('@')[0], // Si no hay name, usar parte del email
-          role: response.user.role || UserRole.USER,
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.name || response.user.email)}`,
-          createdAt: new Date(response.user.createdAt || Date.now()),
-          updatedAt: new Date(response.user.updatedAt || Date.now())
-        },
-        token: response.access_token,
-        refreshToken: response.refresh_token // Si el backend lo proporciona
-      };
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
+    // ---- CÓDIGO REAL (descomenta cuando tengas backend) ----
+    // try {
+    //   const response = await this.request<any>(API_ROUTES.AUTH.LOGIN, {
+    //     method: 'POST',
+    //     body: JSON.stringify(credentials),
+    //   });
+    //
+    //   return {
+    //     user: {
+    //       id: response.user.id,
+    //       email: response.user.email,
+    //       name: response.user.name || response.user.email.split('@')[0],
+    //       role: response.user.role || UserRole.USER,
+    //       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.name || response.user.email)}`,
+    //       createdAt: new Date(response.user.createdAt || Date.now()),
+    //       updatedAt: new Date(response.user.updatedAt || Date.now())
+    //     },
+    //     token: response.access_token,
+    //     refreshToken: response.refresh_token
+    //   };
+    // } catch (error) {
+    //   console.error('Login error:', error);
+    //   throw error;
+    // }
   }
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    try {
-      // Verificar que las contraseñas coincidan antes de enviar al backend
-      if (credentials.password !== credentials.confirmPassword) {
-        throw new Error('Las contraseñas no coinciden');
-      }
+    // MODO DEMO: Simulación de registro - comentar cuando tengas backend real
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Verificar que las contraseñas coincidan
+        if (credentials.password !== credentials.confirmPassword) {
+          reject(new Error('Las contraseñas no coinciden'));
+          return;
+        }
 
-      // Preparar datos para el backend según el DTO del UserController
-      const registerData = {
-        username: credentials.name,
-        email: credentials.email,
-        password: credentials.password,
-        role: 'user' // Role por defecto
-      };
+        // Simular validación de email válido
+        if (!credentials.email.includes('@')) {
+          reject(new Error('Email inválido'));
+          return;
+        }
 
-      // Crear el usuario usando el endpoint de users
-      const userResponse = await this.request<any>(API_ROUTES.USERS.CREATE, {
-        method: 'POST',
-        body: JSON.stringify(registerData),
-      });
+        // Simular registro exitoso
+        const mockUser: User = {
+          id: '2',
+          email: credentials.email,
+          name: credentials.name,
+          role: UserRole.USER,
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(credentials.name)}`,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        resolve({
+          user: mockUser,
+          token: 'mock-jwt-token-register',
+          refreshToken: 'mock-refresh-token-register'
+        });
+      }, 2000); // Simula latencia de red
+    });
 
-      // Después de crear el usuario, hacer login automáticamente
-      const loginResponse = await this.login({
-        email: credentials.email,
-        password: credentials.password
-      });
-
-      return loginResponse;
-    } catch (error) {
-      console.error('Register error:', error);
-      throw error;
-    }
+    // ---- CÓDIGO REAL (descomenta cuando tengas backend) ----
+    // try {
+    //   if (credentials.password !== credentials.confirmPassword) {
+    //     throw new Error('Las contraseñas no coinciden');
+    //   }
+    //
+    //   const registerData = {
+    //     username: credentials.name,
+    //     email: credentials.email,
+    //     password: credentials.password,
+    //     role: 'user'
+    //     method: 'POST',
+    //     body: JSON.stringify(registerData),
+    //   });
+    //
+    //   // Después de crear el usuario, hacer login automáticamente
+    //   const loginResponse = await this.login({
+    //     email: credentials.email,
+    //     password: credentials.password
+    //   });
+    //
+    //   return loginResponse;
+    // } catch (error) {
+    //   console.error('Register error:', error);
+    //   throw error;
+    // }
   }
 
   async validateToken(token: string): Promise<User> {

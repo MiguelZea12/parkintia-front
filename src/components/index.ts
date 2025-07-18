@@ -9,6 +9,9 @@ export { default as VideoPlayer } from './ui/VideoPlayer';
 export { LoginForm } from './auth/LoginForm';
 export { RegisterForm } from './auth/RegisterForm';
 
+// Chatbot Components
+export { ChatWindow, ChatbotToggle } from './chatbot';
+
 // Configuration & Routes
 export * from '../config/routes';
 

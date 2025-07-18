@@ -9,6 +9,7 @@ import { OverviewModule } from '@/components/dashboard/OverviewModule';
 import { CamerasModule } from '@/components/dashboard/CamerasModule';
 import { ReportsModule } from '@/components/dashboard/ReportsModule';
 import { UsersModule } from '@/components/dashboard/UsersModule';
+import { ChatbotToggle } from '@/components/chatbot';
 import { COLORS } from '@/config/colors';
 
 type ActiveModule = 'overview' | 'cameras' | 'reports' | 'users' | 'parking' | 'analytics';
@@ -114,6 +115,9 @@ export default function DashboardPage() {
           {renderActiveModule()}
         </div>
       </main>
+
+      {/* Chatbot flotante */}
+      <ChatbotToggle />
     </div>
   );
 }

@@ -379,7 +379,7 @@ export const OverviewModule: React.FC = () => {
                   }}
                   tickLine={false}
                   axisLine={{ stroke: '#e2e8f0', strokeWidth: 1 }}
-                  tickFormatter={(value) => `${value}%`}
+                  tickFormatter={(value: any) => `${value}%`}
                 />
                 
                 <Tooltip content={<CustomTooltip />} />
