@@ -2,7 +2,7 @@ import { LoginCredentials, RegisterCredentials, AuthResponse, User, UserRole } f
 import { API_ROUTES, RouteUtils } from '@/config/routes';
 
 // Configuración base de la API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 class AuthService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -34,76 +34,65 @@ class AuthService {
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    // Por ahora simulamos la respuesta - reemplaza con llamada real al backend
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Simulación básica de validación
-        if (credentials.email === 'demo@parkintia.com' && credentials.password === 'demo123') {
-          const mockUser: User = {
-            id: '1',
-            email: credentials.email,
-            name: 'Usuario Demo',
-            role: UserRole.USER,
-            avatar: 'https://ui-avatars.com/api/?name=Usuario+Demo',
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          
-          resolve({
-            user: mockUser,
-            token: 'mock-jwt-token-123',
-            refreshToken: 'mock-refresh-token-456'
-          });
-        } else {
-          reject(new Error('Credenciales inválidas'));
-        }
-      }, 1500); // Simula latencia de red
-    });
+    try {
+      const response = await this.request<any>(API_ROUTES.AUTH.LOGIN, {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+      });
 
-    // Cuando conectes con el backend, reemplaza lo anterior con:
-    // return this.request<AuthResponse>(API_ROUTES.AUTH.LOGIN, {
-    //   method: 'POST',
-    //   body: JSON.stringify(credentials),
-    // });
+      // El backend devuelve { user: {...}, access_token: "..." }
+      // Adaptamos la respuesta al formato que espera el frontend
+      return {
+        user: {
+          id: response.user.id,
+          email: response.user.email,
+          name: response.user.name || response.user.email.split('@')[0], // Si no hay name, usar parte del email
+          role: response.user.role || UserRole.USER,
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.name || response.user.email)}`,
+          createdAt: new Date(response.user.createdAt || Date.now()),
+          updatedAt: new Date(response.user.updatedAt || Date.now())
+        },
+        token: response.access_token,
+        refreshToken: response.refresh_token // Si el backend lo proporciona
+      };
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   }
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    // Simulación por ahora
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (credentials.password !== credentials.confirmPassword) {
-          reject(new Error('Las contraseñas no coinciden'));
-          return;
-        }
+    try {
+      // Verificar que las contraseñas coincidan antes de enviar al backend
+      if (credentials.password !== credentials.confirmPassword) {
+        throw new Error('Las contraseñas no coinciden');
+      }
 
-        if (credentials.email === 'existing@parkintia.com') {
-          reject(new Error('El email ya está registrado'));
-          return;
-        }
+      // Preparar datos para el backend según el DTO del UserController
+      const registerData = {
+        username: credentials.name,
+        email: credentials.email,
+        password: credentials.password,
+        role: 'user' // Role por defecto
+      };
 
-        const mockUser: User = {
-          id: Math.random().toString(36).substr(2, 9),
-          email: credentials.email,
-          name: credentials.name,
-          role: UserRole.USER,
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(credentials.name)}`,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-        
-        resolve({
-          user: mockUser,
-          token: 'mock-jwt-token-new-user',
-          refreshToken: 'mock-refresh-token-new-user'
-        });
-      }, 2000);
-    });
+      // Crear el usuario usando el endpoint de users
+      const userResponse = await this.request<any>(API_ROUTES.USERS.CREATE, {
+        method: 'POST',
+        body: JSON.stringify(registerData),
+      });
 
-    // Para backend real:
-    // return this.request<AuthResponse>(API_ROUTES.AUTH.REGISTER, {
-    //   method: 'POST',
-    //   body: JSON.stringify(credentials),
-    // });
+      // Después de crear el usuario, hacer login automáticamente
+      const loginResponse = await this.login({
+        email: credentials.email,
+        password: credentials.password
+      });
+
+      return loginResponse;
+    } catch (error) {
+      console.error('Register error:', error);
+      throw error;
+    }
   }
 
   async validateToken(token: string): Promise<User> {
