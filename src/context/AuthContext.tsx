@@ -102,6 +102,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Verificar si hay un token guardado al cargar la aplicación
   useEffect(() => {
     const initializeAuth = async () => {
+      // Verificar si estamos en el cliente
+      if (typeof window === 'undefined') return;
+      
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
         const token = localStorage.getItem('auth_token');
@@ -110,28 +113,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Validar el token y obtener el usuario
           const user = await authService.validateToken(token);
           dispatch({ type: 'SET_USER', payload: user });
+        } else {
+          // No hay token, asegurarse de que el estado esté limpio
+          dispatch({ type: 'SET_USER', payload: null });
         }
       } catch (error) {
         // Token inválido, remover del localStorage
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('refresh_token');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('refresh_token');
+        }
+        dispatch({ type: 'SET_USER', payload: null });
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
 
     initializeAuth();
-  }, []);
+  }, []); // Solo ejecutar una vez al montar el componente
 
   const login = async (credentials: LoginCredentials): Promise<void> => {
     try {
       dispatch({ type: 'LOGIN_START' });
       const response = await authService.login(credentials);
       
-      // Guardar tokens en localStorage
-      localStorage.setItem('auth_token', response.token);
-      if (response.refreshToken) {
-        localStorage.setItem('refresh_token', response.refreshToken);
+      // Guardar tokens en localStorage solo en el cliente
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', response.token);
+        if (response.refreshToken) {
+          localStorage.setItem('refresh_token', response.refreshToken);
+        }
       }
       
       dispatch({ type: 'LOGIN_SUCCESS', payload: response.user });
@@ -151,10 +162,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       dispatch({ type: 'REGISTER_START' });
       const response = await authService.register(credentials);
       
-      // Guardar tokens en localStorage
-      localStorage.setItem('auth_token', response.token);
-      if (response.refreshToken) {
-        localStorage.setItem('refresh_token', response.refreshToken);
+      // Guardar tokens en localStorage solo en el cliente
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', response.token);
+        if (response.refreshToken) {
+          localStorage.setItem('refresh_token', response.refreshToken);
+        }
       }
       
       dispatch({ type: 'REGISTER_SUCCESS', payload: response.user });
@@ -170,9 +183,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = (): void => {
-    // Remover tokens del localStorage
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
+    // Remover tokens del localStorage solo en el cliente
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('refresh_token');
+    }
     
     // Limpiar estado
     dispatch({ type: 'LOGOUT' });
