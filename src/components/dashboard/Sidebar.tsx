@@ -37,44 +37,44 @@ const menuItems = [
 ];
 
 // Icon Components
-const DashboardIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+const DashboardIcon = ({ collapsed }: { collapsed: boolean }) => (
+  <svg className={`${collapsed ? 'w-12 h-12' : 'w-5 h-5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
   </svg>
 );
 
-const CameraIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+const CameraIcon = ({ collapsed }: { collapsed: boolean }) => (
+  <svg className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
   </svg>
 );
 
-const ReportIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+const ReportIcon = ({ collapsed }: { collapsed: boolean }) => (
+  <svg className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
   </svg>
 );
 
-const UsersIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+const UsersIcon = ({ collapsed }: { collapsed: boolean }) => (
+  <svg className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
   </svg>
 );
 
-const LogoutIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+const LogoutIcon = ({ collapsed }: { collapsed: boolean }) => (
+  <svg className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
   </svg>
 );
 
-const getIcon = (iconName: string) => {
+const getIcon = (iconName: string, collapsed: boolean) => {
   switch (iconName) {
-    case 'dashboard': return <DashboardIcon />;
-    case 'camera': return <CameraIcon />;
-    case 'report': return <ReportIcon />;
-    case 'users': return <UsersIcon />;
-    default: return <DashboardIcon />;
+    case 'dashboard': return <DashboardIcon collapsed={collapsed} />;
+    case 'camera': return <CameraIcon collapsed={collapsed} />;
+    case 'report': return <ReportIcon collapsed={collapsed} />;
+    case 'users': return <UsersIcon collapsed={collapsed} />;
+    default: return <DashboardIcon collapsed={collapsed} />;
   }
 };
 
@@ -117,10 +117,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
           <button
             onClick={onToggleCollapse}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className={`p-2 rounded-lg hover:bg-gray-100 transition-colors ${collapsed ? 'mx-auto' : ''}`}
             style={{ color: COLORS.text.light }}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -156,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <li key={item.id}>
               <button
                 onClick={() => onModuleSelect(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+                className={`w-full flex items-center ${collapsed ? 'justify-center px-2 py-3' : 'space-x-3 px-3 py-2'} rounded-lg transition-all duration-200 ${
                   activeModule === item.id
                     ? 'text-white shadow-lg transform scale-105'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -178,7 +178,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }
                 }}
               >
-                {getIcon(item.icon)}
+                {getIcon(item.icon, collapsed)}
                 {!collapsed && (
                   <span className="font-medium">
                     {t(item.translationKey)}
@@ -200,10 +200,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         
         <button
           onClick={handleLogout}
-          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors hover:bg-red-50 hover:text-red-600"
+          className={`w-full flex items-center ${collapsed ? 'justify-center px-2 py-3' : 'space-x-3 px-3 py-2'} rounded-lg transition-colors hover:bg-red-50 hover:text-red-600`}
           style={{ color: COLORS.text.light }}
         >
-          <LogoutIcon />
+          <LogoutIcon collapsed={collapsed} />
           {!collapsed && (
             <span className="font-medium">
               {t('logout')}

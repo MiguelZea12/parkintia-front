@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AuthContextType, AuthState, LoginCredentials, RegisterCredentials, User, AuthError } from '@/types/auth';
 import { authService } from '@/services/auth.service';
 
@@ -98,6 +99,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const router = useRouter();
 
   // Verificar si hay un token guardado al cargar la aplicación
   useEffect(() => {
@@ -191,6 +193,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Limpiar estado
     dispatch({ type: 'LOGOUT' });
+    
+    // Redirigir al login
+    router.push('/login');
     
     // Opcional: notificar al servidor sobre el logout
     authService.logout().catch(console.error);

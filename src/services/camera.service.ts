@@ -1,5 +1,5 @@
 // Configuración base de la API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface CameraData {
   count_cars: number;

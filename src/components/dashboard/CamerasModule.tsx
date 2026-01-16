@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { COLORS } from '@/config/colors';
 import { cameraService, CameraData, CameraStats } from '@/services/camera.service';
+import { parkingService } from '@/services/parking.service';
 import VideoPlayer from '@/components/ui/VideoPlayer';
 import VideoModal from '@/components/ui/VideoModal';
 
@@ -65,13 +66,58 @@ const CameraCard: React.FC<{
   onEdit: (camera: Camera) => void; 
   onDelete: (id: string) => void;
   onViewVideo: (camera: Camera) => void;
+  onStatsUpdate?: (stats: any) => void; // Nuevo callback
 }> = ({
   camera,
   onEdit,
   onDelete,
-  onViewVideo
+  onViewVideo,
+  onStatsUpdate
 }) => {
   const { t } = useLanguage();
+  const [liveStats, setLiveStats] = useState<any>(null);
+
+  useEffect(() => {
+    // Cargar estadísticas en vivo si la cámara está online
+    if (camera.status === 'online') {
+      loadLiveStats();
+      const interval = setInterval(loadLiveStats, 3000); // Actualizar cada 3 segundos
+      return () => clearInterval(interval);
+    }
+  }, [camera.id, camera.status]);
+
+  const loadLiveStats = async () => {
+    try {
+      const stats = await parkingService.getParkingStatusLive(camera.id);
+      setLiveStats(stats);
+      // Notificar al componente padre inmediatamente
+      if (onStatsUpdate && stats) {
+        console.log('📊 Actualizando stats globales:', stats.occupiedSpaces, '/', stats.totalSpaces);
+        onStatsUpdate(stats);
+      }
+    } catch (error) {
+      console.error('Error loading live stats:', error);
+    }
+  };
+
+  // Actualizar stats al padre cuando cambien los liveStats
+  useEffect(() => {
+    if (liveStats && onStatsUpdate) {
+      console.log('📈 Stats actualizadas via useEffect:', liveStats.occupiedSpaces);
+      onStatsUpdate(liveStats);
+    }
+  }, [liveStats]);
+
+  const displayStats = liveStats || {
+    totalSpaces: camera.totalSpaces || 12,
+    occupiedSpaces: camera.occupiedSpaces || 0,
+    freeSpaces: camera.emptySpaces || 12,
+    occupancyRate: camera.occupancyRate || 0
+  };
+
+  const occupancyPercentage = displayStats.totalSpaces > 0 
+    ? (displayStats.occupiedSpaces / displayStats.totalSpaces) * 100 
+    : 0;
 
   return (
     <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
@@ -123,12 +169,14 @@ const CameraCard: React.FC<{
 
       {/* Camera Preview */}
       <div 
-        className="w-full h-32 rounded-lg mb-4 overflow-hidden"
+        className="w-full h-48 rounded-lg mb-4 overflow-hidden bg-black cursor-pointer"
         style={{ backgroundColor: `${COLORS.primary.light}10` }}
+        onClick={() => onViewVideo(camera)}
       >
         <VideoPlayer 
           isOnline={camera.status === 'online'} 
           cameraName={camera.name}
+          cameraId={camera.id}
           className="rounded-lg"
         />
       </div>
@@ -136,41 +184,39 @@ const CameraCard: React.FC<{
       {/* Camera Info */}
       <div className="space-y-3">
         {/* Estadísticas de ocupación */}
-        {camera.totalSpaces && (
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium" style={{ color: COLORS.text.dark }}>
-                Ocupación del Parking
-              </span>
-              <span className="text-sm font-bold" style={{ color: COLORS.primary.medium }}>
-                {camera.occupancyRate?.toFixed(1)}%
-              </span>
+        <div className="bg-gray-50 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium" style={{ color: COLORS.text.dark }}>
+              Ocupación del Parking
+            </span>
+            <span className="text-sm font-bold" style={{ color: COLORS.primary.medium }}>
+              {occupancyPercentage.toFixed(1)}%
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="text-center">
+              <div className="font-semibold text-red-600">{displayStats.occupiedSpaces}</div>
+              <div style={{ color: COLORS.text.light }}>Ocupados</div>
             </div>
-            
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="text-center">
-                <div className="font-semibold text-green-600">{camera.occupiedSpaces}</div>
-                <div style={{ color: COLORS.text.light }}>Ocupados</div>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold text-blue-600">{camera.emptySpaces}</div>
-                <div style={{ color: COLORS.text.light }}>Libres</div>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold" style={{ color: COLORS.text.dark }}>{camera.totalSpaces}</div>
-                <div style={{ color: COLORS.text.light }}>Total</div>
-              </div>
+            <div className="text-center">
+              <div className="font-semibold text-green-600">{displayStats.freeSpaces}</div>
+              <div style={{ color: COLORS.text.light }}>Libres</div>
             </div>
-            
-            {/* Barra de progreso */}
-            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${camera.occupancyRate || 0}%` }}
-              ></div>
+            <div className="text-center">
+              <div className="font-semibold" style={{ color: COLORS.text.dark }}>{displayStats.totalSpaces}</div>
+              <div style={{ color: COLORS.text.light }}>Total</div>
             </div>
           </div>
-        )}
+          
+          {/* Barra de progreso */}
+          <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${occupancyPercentage}%` }}
+            ></div>
+          </div>
+        </div>
 
         <div className="flex items-center justify-between text-sm">
           <span style={{ color: COLORS.text.light }}>
@@ -193,15 +239,15 @@ const CameraCard: React.FC<{
 
 export const CamerasModule: React.FC = () => {
   const { t } = useLanguage();
-  const [cameras, setCameras] = useState<Camera[]>(mockCameras);
+  const [cameras, setCameras] = useState<Camera[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCamera, setEditingCamera] = useState<Camera | null>(null);
   const [cameraData, setCameraData] = useState<CameraData[]>([]);
   const [cameraStats, setCameraStats] = useState<CameraStats>({
-    totalSpaces: 0,
+    totalSpaces: 12,
     occupiedSpaces: 0,
-    emptySpaces: 0,
+    emptySpaces: 12,
     occupancyRate: 0
   });
   const [loading, setLoading] = useState(true);
@@ -209,20 +255,72 @@ export const CamerasModule: React.FC = () => {
   const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
   
+  // Callback para actualizar estadísticas globales desde las CameraCards
+  const handleStatsUpdate = (stats: any) => {
+    console.log('🎯 handleStatsUpdate llamado con:', stats);
+    if (stats) {
+      const newStats = {
+        totalSpaces: stats.totalSpaces || 12,
+        occupiedSpaces: stats.occupiedSpaces || 0,
+        emptySpaces: stats.freeSpaces || 12,
+        occupancyRate: stats.totalSpaces > 0 
+          ? (stats.occupiedSpaces / stats.totalSpaces) * 100 
+          : 0
+      };
+      console.log('✅ Actualizando cameraStats a:', newStats);
+      setCameraStats(newStats);
+    }
+  };
+  
   // Estados para el formulario
   const [formData, setFormData] = useState({
     name: '',
     location: '',
-    status: 'online' as 'online' | 'offline'
+    status: 'online' as 'online' | 'offline',
+    videoFile: '',
+    streamUrl: ''
   });
 
   // Cargar datos de las cámaras al montar el componente
   useEffect(() => {
     loadCameraData();
-    // Actualizar datos cada 30 segundos
-    const interval = setInterval(loadCameraData, 30000);
+    // Actualizar datos cada 3 segundos para mejor sincronización
+    const interval = setInterval(() => {
+      loadCameraData();
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // Cargar estadísticas en vivo desde la primera cámara activa
+  const loadLiveStats = async (cameraId?: string) => {
+    try {
+      // Usar el ID de cámara proporcionado o buscar la primera cámara
+      const targetCameraId = cameraId || cameras[0]?.id || 'default';
+      const stats = await parkingService.getParkingStatusLive(targetCameraId);
+      const totalSpaces = stats.totalSpaces || 12;
+      const occupiedSpaces = stats.occupiedSpaces || 0;
+      const freeSpaces = stats.freeSpaces || totalSpaces;
+      const occupancyRate = totalSpaces > 0 
+        ? (occupiedSpaces / totalSpaces) * 100 
+        : 0;
+      
+      setCameraStats({
+        totalSpaces,
+        occupiedSpaces,
+        emptySpaces: freeSpaces,
+        occupancyRate
+      });
+    } catch (error) {
+      console.error('Error loading live stats:', error);
+      // Mantener valores por defecto si hay error
+      setCameraStats({
+        totalSpaces: 12,
+        occupiedSpaces: 0,
+        emptySpaces: 12,
+        occupancyRate: 0
+      });
+    }
+  };
 
   // Manejar tecla ESC para cerrar modal
   useEffect(() => {
@@ -238,29 +336,41 @@ export const CamerasModule: React.FC = () => {
 
   const loadCameraData = async () => {
     try {
-      const data = await cameraService.getAllCameraData();
-      const stats = cameraService.calculateCameraStats(data);
+      // Cargar cámaras reales desde el backend
+      const realCameras = await parkingService.getCameras();
       
-      setCameraData(data);
-      setCameraStats(stats);
-      setLastUpdate(new Date().toLocaleTimeString());
+      // Convertir al formato del componente
+      const convertedCameras: Camera[] = realCameras.map((cam: any) => ({
+        id: cam.id,
+        name: cam.name,
+        location: cam.description || 'Sin descripción',
+        status: cam.isActive ? 'online' : 'offline',
+        isActive: cam.isActive,
+        lastActivity: cam.updatedAt ? new Date(cam.updatedAt).toLocaleString() : 'Never',
+        occupiedSpaces: 0,
+        emptySpaces: cam.total_parking || 0,
+        totalSpaces: cam.total_parking || 0,
+        occupancyRate: 0
+      }));
       
-      // Actualizar datos de las cámaras mock con datos reales
-      if (data.length > 0) {
-        const latestData = data[data.length - 1];
-        setCameras(prevCameras => 
-          prevCameras.map((camera, index) => ({
-            ...camera,
-            occupiedSpaces: latestData.count_cars,
-            emptySpaces: latestData.empty_spaces,
-            totalSpaces: latestData.count_cars + latestData.empty_spaces,
-            occupancyRate: stats.occupancyRate,
-            status: 'online' as const,
-            isActive: true,
-            lastActivity: latestData.time_video_sg
-          }))
-        );
+      setCameras(convertedCameras);
+      
+      // Actualizar estadísticas globales con la primera cámara activa
+      if (convertedCameras.length > 0 && convertedCameras[0].status === 'online') {
+        await loadLiveStats(convertedCameras[0].id);
       }
+      
+      // Cargar datos estadísticos legacy
+      try {
+        const data = await cameraService.getAllCameraData();
+        const stats = cameraService.calculateCameraStats(data);
+        setCameraData(data);
+        setCameraStats(stats);
+      } catch (error) {
+        console.log('Legacy data not available:', error);
+      }
+      
+      setLastUpdate(new Date().toLocaleTimeString());
     } catch (error) {
       console.error('Error loading camera data:', error);
     } finally {
@@ -281,62 +391,83 @@ export const CamerasModule: React.FC = () => {
     setFormData({
       name: camera.name,
       location: camera.location,
-      status: camera.status
+      status: camera.status,
+      videoFile: '',
+      streamUrl: ''
     });
     setShowAddForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    setCameras(cameras.filter(camera => camera.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar esta cámara?')) return;
+    
+    try {
+      await parkingService.deleteCamera(id);
+      await loadCameraData();
+    } catch (error) {
+      console.error('Error deleting camera:', error);
+      alert('Error al eliminar la cámara');
+    }
   };
 
-  const handleSave = () => {
-    if (!formData.name.trim() || !formData.location.trim()) {
-      alert('Por favor completa todos los campos');
+  const handleSave = async () => {
+    if (!formData.name.trim()) {
+      alert('Por favor ingresa el nombre de la cámara');
+      return;
+    }
+    
+    if (!formData.location.trim()) {
+      alert('Por favor ingresa la ubicación/descripción');
+      return;
+    }
+    
+    if (!formData.videoFile.trim()) {
+      alert('Por favor ingresa el archivo de video (ej: parking1.mp4)');
       return;
     }
 
-    if (editingCamera) {
-      // Editar cámara existente
-      setCameras(cameras.map(camera => 
-        camera.id === editingCamera.id 
-          ? {
-              ...camera,
-              name: formData.name.trim(),
-              location: formData.location.trim(),
-              status: formData.status,
-              isActive: formData.status === 'online',
-              lastActivity: formData.status === 'online' ? 'Just now' : '1 hour ago'
-            }
-          : camera
-      ));
-    } else {
-      // Agregar nueva cámara
-      const newCamera: Camera = {
-        id: `cam-${Date.now()}`,
-        name: formData.name.trim(),
-        location: formData.location.trim(),
-        status: formData.status,
-        isActive: formData.status === 'online',
-        lastActivity: formData.status === 'online' ? 'Just now' : 'Never'
-      };
-      setCameras([...cameras, newCamera]);
-    }
+    try {
+      if (editingCamera) {
+        // Editar cámara existente
+        await parkingService.updateCamera(editingCamera.id, {
+          name: formData.name.trim(),
+          description: formData.location.trim(),
+          videoFile: formData.videoFile.trim(),
+          streamUrl: formData.streamUrl.trim(),
+          isActive: formData.status === 'online'
+        });
+      } else {
+        // Agregar nueva cámara
+        await parkingService.createCamera({
+          name: formData.name.trim(),
+          description: formData.location.trim(),
+          videoFile: formData.videoFile.trim(),
+          streamUrl: formData.streamUrl.trim(),
+          isActive: formData.status === 'online'
+        });
+      }
 
-    // Resetear formulario
-    setFormData({ name: '', location: '', status: 'online' });
-    setShowAddForm(false);
-    setEditingCamera(null);
+      // Recargar cámaras
+      await loadCameraData();
+
+      // Resetear formulario
+      setFormData({ name: '', location: '', status: 'online', videoFile: '', streamUrl: '' });
+      setShowAddForm(false);
+      setEditingCamera(null);
+    } catch (error) {
+      console.error('Error saving camera:', error);
+      alert('Error al guardar la cámara');
+    }
   };
 
   const handleOpenAddForm = () => {
-    setFormData({ name: '', location: '', status: 'online' });
+    setFormData({ name: '', location: '', status: 'online', videoFile: '', streamUrl: '' });
     setEditingCamera(null);
     setShowAddForm(true);
   };
 
   const handleCloseForm = () => {
-    setFormData({ name: '', location: '', status: 'online' });
+    setFormData({ name: '', location: '', status: 'online', videoFile: '', streamUrl: '' });
     setShowAddForm(false);
     setEditingCamera(null);
   };
@@ -362,7 +493,7 @@ export const CamerasModule: React.FC = () => {
           <p className="text-lg mt-1" style={{ color: COLORS.text.light }}>
             {loading 
               ? 'Cargando datos...' 
-              : `Ocupación: ${cameraStats.occupiedSpaces}/${cameraStats.totalSpaces} espacios (${cameraStats.occupancyRate.toFixed(1)}%)`
+              : `Ocupación: ${cameraStats.occupiedSpaces || 0}/${cameraStats.totalSpaces || 12} espacios (${(cameraStats.occupancyRate || 0).toFixed(1)}%)`
             }
           </p>
         </div>
@@ -405,7 +536,7 @@ export const CamerasModule: React.FC = () => {
                 Espacios Ocupados
               </p>
               <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
-                {loading ? '...' : cameraStats.occupiedSpaces}
+                {loading ? '...' : (cameraStats.occupiedSpaces || 0)}
               </p>
             </div>
             <div 
@@ -426,7 +557,7 @@ export const CamerasModule: React.FC = () => {
                 Espacios Libres
               </p>
               <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
-                {loading ? '...' : cameraStats.emptySpaces}
+                {loading ? '...' : (cameraStats.emptySpaces || 12)}
               </p>
             </div>
             <div 
@@ -447,7 +578,7 @@ export const CamerasModule: React.FC = () => {
                 Total Espacios
               </p>
               <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
-                {loading ? '...' : cameraStats.totalSpaces}
+                {loading ? '...' : (cameraStats.totalSpaces || 12)}
               </p>
             </div>
             <div 
@@ -468,14 +599,14 @@ export const CamerasModule: React.FC = () => {
                 Tasa Ocupación
               </p>
               <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
-                {loading ? '...' : `${cameraStats.occupancyRate.toFixed(1)}%`}
+                {loading ? '...' : `${(cameraStats.occupancyRate || 0).toFixed(1)}%`}
               </p>
             </div>
             <div 
               className="p-3 rounded-full"
               style={{ 
-                backgroundColor: cameraStats.occupancyRate > 80 ? '#EF444420' : '#F59E0B20', 
-                color: cameraStats.occupancyRate > 80 ? '#EF4444' : '#F59E0B' 
+                backgroundColor: (cameraStats.occupancyRate || 0) > 80 ? '#EF444420' : '#F59E0B20', 
+                color: (cameraStats.occupancyRate || 0) > 80 ? '#EF4444' : '#F59E0B' 
               }}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -548,6 +679,7 @@ export const CamerasModule: React.FC = () => {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onViewVideo={handleViewVideo}
+            onStatsUpdate={handleStatsUpdate}
           />
         ))}
       </div>
@@ -575,29 +707,71 @@ export const CamerasModule: React.FC = () => {
                 {editingCamera ? t('editCamera') : t('addCamera')}
               </h3>
               <div className="space-y-4">
-                <Input
-                  type="text"
-                  placeholder={t('cameraName')}
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  fullWidth
-                />
-                <Input
-                  type="text"
-                  placeholder={t('cameraLocation')}
-                  value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  fullWidth
-                />
-                <select 
-                  className="w-full px-4 py-3 border rounded-xl"
-                  style={{ borderColor: COLORS.primary.light }}
-                  value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'online' | 'offline' }))}
-                >
-                  <option value="online">{t('online')}</option>
-                  <option value="offline">{t('offline')}</option>
-                </select>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                    Nombre de la Cámara *
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Ej: Parking Demo"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                    Ubicación/Descripción *
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Ej: Zona C - Sur"
+                    value={formData.location}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                    Archivo de Video *
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="parking1.mp4"
+                    value={formData.videoFile}
+                    onChange={(e) => setFormData(prev => ({ ...prev, videoFile: e.target.value }))}
+                    fullWidth
+                  />
+                  <p className="text-xs mt-1" style={{ color: COLORS.text.light }}>
+                    Debe estar en python-detection-service/
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                    URL del Stream (opcional)
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="http://..."
+                    value={formData.streamUrl}
+                    onChange={(e) => setFormData(prev => ({ ...prev, streamUrl: e.target.value }))}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                    Estado
+                  </label>
+                  <select 
+                    className="w-full px-4 py-3 border rounded-xl"
+                    style={{ borderColor: COLORS.primary.light }}
+                    value={formData.status}
+                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'online' | 'offline' }))}
+                  >
+                    <option value="online">{t('online')}</option>
+                    <option value="offline">{t('offline')}</option>
+                  </select>
+                </div>
               </div>
               <div className="flex space-x-3 mt-6">
                 <Button
@@ -628,6 +802,7 @@ export const CamerasModule: React.FC = () => {
         cameraName={selectedCamera?.name || ''}
         cameraLocation={selectedCamera?.location || ''}
         isOnline={selectedCamera?.status === 'online'}
+        cameraId={selectedCamera?.id || 'default'}
       />
     </div>
   );

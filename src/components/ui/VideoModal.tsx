@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { COLORS } from '@/config/colors';
-import VideoPlayer from '@/components/ui/VideoPlayer';
+import { parkingService } from '@/services/parking.service';
+import { Play, Pause, RotateCcw, X } from 'lucide-react';
 
 interface VideoModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface VideoModalProps {
   cameraName: string;
   cameraLocation: string;
   isOnline: boolean;
+  cameraId?: string;
 }
 
 const VideoModal: React.FC<VideoModalProps> = ({ 
@@ -19,87 +21,191 @@ const VideoModal: React.FC<VideoModalProps> = ({
   onClose, 
   cameraName, 
   cameraLocation, 
-  isOnline 
+  isOnline,
+  cameraId = 'default'
 }) => {
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [status, setStatus] = useState<any>(null);
+  const [streamUrl, setStreamUrl] = useState<string>('');
+
+  useEffect(() => {
+    if (isOpen && isOnline) {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const url = `${backendUrl}/camera/video-feed?cameraId=${cameraId}&t=${Date.now()}`;
+      setStreamUrl(url);
+
+      // Cargar estado cada 2 segundos
+      const interval = setInterval(fetchStatus, 2000);
+      fetchStatus();
+      
+      return () => clearInterval(interval);
+    }
+  }, [isOpen, isOnline, cameraId]);
+
+  const fetchStatus = async () => {
+    try {
+      const data = await parkingService.getParkingStatusLive(cameraId);
+      setStatus(data);
+    } catch (err) {
+      console.error('Error fetching status:', err);
+    }
+  };
+
+  const controlVideo = async (action: string) => {
+    try {
+      await parkingService.controlVideo(action as any, cameraId);
+      
+      if (action === 'play') {
+        setIsPlaying(true);
+      } else if (action === 'pause') {
+        setIsPlaying(false);
+      } else if (action === 'restart') {
+        setIsPlaying(true);
+      }
+    } catch (err) {
+      console.error('Error controlling video:', err);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-4xl">
-        <Card className="overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-7xl">
+        <Card className="overflow-hidden bg-gray-900 border-gray-700">
           {/* Header */}
-          <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: COLORS.primary.light }}>
+          <div className="p-4 border-b border-gray-700 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold" style={{ color: COLORS.text.dark }}>
+              <h3 className="text-lg font-semibold text-white">
                 {cameraName}
               </h3>
-              <p className="text-sm" style={{ color: COLORS.text.light }}>
+              <p className="text-sm text-gray-400">
                 {cameraLocation}
               </p>
             </div>
             <div className="flex items-center space-x-3">
-              <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${
-                isOnline ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span>{isOnline ? 'En línea' : 'Fuera de línea'}</span>
-              </div>
-              <Button
-                variant="outline"
+              {status && (
+                <div className="flex items-center space-x-4 text-sm text-gray-300">
+                  <span className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    {status.freeSpaces} Libres
+                  </span>
+                  <span className="flex items-center">
+                    <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                    {status.occupiedSpaces} Ocupados
+                  </span>
+                </div>
+              )}
+              <button
                 onClick={onClose}
-                style={{ 
-                  borderColor: COLORS.text.light,
-                  color: COLORS.text.light 
-                }}
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-white"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </Button>
+                <X size={20} />
+              </button>
             </div>
           </div>
 
           {/* Video Content */}
-          <div className="aspect-video">
-            <VideoPlayer 
-              isOnline={isOnline} 
-              cameraName={cameraName}
-              className=""
-            />
+          <div className="relative bg-black">
+            {isOnline ? (
+              <img
+                src={streamUrl}
+                alt={`Stream de ${cameraName}`}
+                className="w-full h-auto"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-96 text-gray-500">
+                <div className="text-center">
+                  <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 21l-3-3m0 0L5.636 5.636M15 12H9m6 0a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <p>Cámara fuera de línea</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Footer with controls */}
-          <div className="p-4 bg-gray-50 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                style={{ 
-                  borderColor: COLORS.primary.medium,
-                  color: COLORS.primary.medium 
-                }}
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Descargar
-              </Button>
-              <Button
-                variant="outline"
-                style={{ 
-                  borderColor: COLORS.primary.medium,
-                  color: COLORS.primary.medium 
-                }}
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                </svg>
-                Compartir
-              </Button>
+          {/* Footer with controls and stats */}
+          <div className="p-4 bg-gray-800">
+            <div className="flex items-center justify-between mb-4">
+              {/* Controles de video */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => controlVideo('play')}
+                  className={`inline-flex items-center px-4 py-2 rounded-md transition-colors ${
+                    isPlaying 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'bg-gray-700 text-white hover:bg-gray-600'
+                  }`}
+                  disabled={!isOnline}
+                >
+                  <Play size={16} className="mr-2" />
+                  Play
+                </button>
+                
+                <button
+                  onClick={() => controlVideo('pause')}
+                  className="inline-flex items-center px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors"
+                  disabled={!isOnline}
+                >
+                  <Pause size={16} className="mr-2" />
+                  Pausa
+                </button>
+                
+                <button
+                  onClick={() => controlVideo('restart')}
+                  className="inline-flex items-center px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors"
+                  disabled={!isOnline}
+                >
+                  <RotateCcw size={16} className="mr-2" />
+                  Reiniciar
+                </button>
+              </div>
+
+              {/* Estadísticas */}
+              {status && (
+                <div className="flex items-center space-x-6 text-sm text-gray-300">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white">{status.totalSpaces}</div>
+                    <div>Total Espacios</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-500">{status.freeSpaces}</div>
+                    <div>Libres</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-500">{status.occupiedSpaces}</div>
+                    <div>Ocupados</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-500">
+                      {status.totalSpaces > 0 
+                        ? Math.round((status.occupiedSpaces / status.totalSpaces) * 100) 
+                        : 0}%
+                    </div>
+                    <div>Ocupación</div>
+                  </div>
+                </div>
+              )}
             </div>
-            
-            <div className="text-sm" style={{ color: COLORS.text.light }}>
-              Presiona ESC para cerrar
-            </div>
+
+            {/* Estado de espacios */}
+            {status && status.spaces && (
+              <div className="grid grid-cols-6 sm:grid-cols-12 gap-2 mt-4">
+                {status.spaces.map((space: any) => (
+                  <div
+                    key={space.id}
+                    className={`p-2 rounded text-center font-medium text-xs transition-all ${
+                      space.isOccupied 
+                        ? 'bg-red-900 text-red-200 border border-red-700' 
+                        : 'bg-green-900 text-green-200 border border-green-700'
+                    }`}
+                  >
+                    #{space.spaceNumber}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </Card>
       </div>

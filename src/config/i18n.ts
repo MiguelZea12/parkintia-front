@@ -97,7 +97,7 @@ export const translations = {
     occupiedSpaces: 'Espacios Ocupados',
     availableSpaces: 'Espacios Disponibles',
     todayRevenue: 'Ingresos de Hoy',
-    totalUsers: 'Total de Usuarios',
+    totalUsers: 'Total de Cliente',
     activeSessions: 'Sesiones Activas',
     
     // Actions
