@@ -98,24 +98,53 @@ export const parkingService = {
 
   // ========== PARKING STATUS & DETECTION ==========
 
-  async getParkingStatus(cameraId: string): Promise<ParkingStatusSummary> {
+  async getParkingStatus(cameraId: string, mappingId?: string): Promise<ParkingStatusSummary> {
+    // Si tenemos mappingId (cam-08...), pedimos directo a Python
+    if (mappingId && (mappingId.startsWith('cam-') || mappingId === 'default')) {
+       try {
+         const response = await fetch(`http://localhost:5000/api/parking/status?cameraId=${mappingId}`);
+         if (response.ok) return response.json();
+       } catch (e) {
+         console.warn("Python service not reachable, falling back to backend");
+       }
+    }
+
     const response = await fetch(`${API_URL}/camera/${cameraId}/parking-status`);
     if (!response.ok) throw new Error('Failed to fetch parking status');
     return response.json();
   },
 
   async getParkingStatusLive(cameraId: string = 'default'): Promise<ParkingStatusSummary> {
-    const response = await fetch(`${API_URL}/camera/parking-status-live?cameraId=${cameraId}`);
-    if (!response.ok) throw new Error('Failed to fetch live parking status');
-    return response.json();
+    try {
+      const response = await fetch(`${API_URL}/camera/parking-status-live?cameraId=${cameraId}`);
+      if (response.ok) return response.json();
+    } catch (e) {
+      // Fallback a llamada directa si el backend falla
+      console.warn('Backend live status failed, trying direct Python service...');
+    }
+
+    // Intento directo al servicio Python
+    try {
+      const response = await fetch(`http://localhost:5000/api/parking/status?cameraId=${cameraId}`);
+      if (!response.ok) throw new Error('Failed to fetch live parking status from Python');
+      return response.json();
+    } catch (e) {
+      throw new Error('Failed to fetch live parking status');
+    }
   },
 
   getStreamUrl(cameraId: string, videoSource: string): string {
-    return `${API_URL}/camera/${cameraId}/stream?source=${encodeURIComponent(videoSource)}`;
+    // Si videoSource es una clave conocida (cam-08, cam-01), úsala como ID para el servicio Python
+    const idParam = videoSource && (videoSource.startsWith('cam-') || videoSource === 'default') 
+      ? videoSource 
+      : cameraId;
+    
+    // Conexión directa al servicio Python
+    return `http://localhost:5000/api/video/feed?cameraId=${idParam}`;
   },
 
   getVideoFeedUrl(cameraId: string = 'default'): string {
-    return `${API_URL}/camera/video-feed?cameraId=${cameraId}`;
+    return `http://localhost:5000/api/video/feed?cameraId=${cameraId}`;
   },
 
   async controlVideo(action: 'play' | 'pause' | 'restart', cameraId: string = 'default'): Promise<any> {

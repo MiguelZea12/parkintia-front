@@ -178,6 +178,7 @@ const CameraCard: React.FC<{
           cameraName={camera.name}
           cameraId={camera.id}
           className="rounded-lg"
+          videoSource={camera.stream}
         />
       </div>
 
@@ -350,7 +351,8 @@ export const CamerasModule: React.FC = () => {
         occupiedSpaces: 0,
         emptySpaces: cam.total_parking || 0,
         totalSpaces: cam.total_parking || 0,
-        occupancyRate: 0
+        occupancyRate: 0,
+        stream: cam.streamUrl
       }));
       
       setCameras(convertedCameras);
@@ -803,6 +805,7 @@ export const CamerasModule: React.FC = () => {
         cameraLocation={selectedCamera?.location || ''}
         isOnline={selectedCamera?.status === 'online'}
         cameraId={selectedCamera?.id || 'default'}
+        videoSource={selectedCamera?.stream}
       />
     </div>
   );

@@ -31,10 +31,12 @@ export default function ParkingLiveView({ cameraId, videoSource }: ParkingLiveVi
 
   const fetchStatus = async () => {
     try {
-      const data = await parkingService.getParkingStatus(cameraId);
+      // Pasamos videoSource como ID de mapeo (ej. cam-08)
+      const data = await parkingService.getParkingStatus(cameraId, videoSource);
       setStatus(data);
       setIsLoading(false);
     } catch (err) {
+      console.error(err);
       setError('Error al cargar el estado del parqueadero');
       setIsLoading(false);
     }
