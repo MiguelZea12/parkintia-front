@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
-import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { COLORS } from '@/config/colors';
 
 interface SidebarProps {
@@ -13,70 +12,80 @@ interface SidebarProps {
   onToggleCollapse: () => void;
 }
 
-const menuItems = [
-  {
-    id: 'overview',
-    icon: 'dashboard',
-    translationKey: 'overview' as const
-  },
-  {
-    id: 'cameras',
-    icon: 'camera',
-    translationKey: 'cameras' as const
-  },
-  {
-    id: 'reports',
-    icon: 'report',
-    translationKey: 'reports' as const
-  },
-  {
-    id: 'users',
-    icon: 'users',
-    translationKey: 'users' as const
-  }
-];
-
-// Icon Components
-const DashboardIcon = ({ collapsed }: { collapsed: boolean }) => (
-  <svg className={`${collapsed ? 'w-12 h-12' : 'w-5 h-5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
-  </svg>
-);
-
-const CameraIcon = ({ collapsed }: { collapsed: boolean }) => (
-  <svg className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-  </svg>
-);
-
-const ReportIcon = ({ collapsed }: { collapsed: boolean }) => (
-  <svg className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
-const UsersIcon = ({ collapsed }: { collapsed: boolean }) => (
-  <svg className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-  </svg>
-);
-
-const LogoutIcon = ({ collapsed }: { collapsed: boolean }) => (
-  <svg className={`${collapsed ? 'w-6 h-6' : 'w-5 h-5'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-  </svg>
-);
-
-const getIcon = (iconName: string, collapsed: boolean) => {
-  switch (iconName) {
-    case 'dashboard': return <DashboardIcon collapsed={collapsed} />;
-    case 'camera': return <CameraIcon collapsed={collapsed} />;
-    case 'report': return <ReportIcon collapsed={collapsed} />;
-    case 'users': return <UsersIcon collapsed={collapsed} />;
-    default: return <DashboardIcon collapsed={collapsed} />;
-  }
+// Professional SVG Icons
+const NavIcons = {
+  overview: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  ),
+  cameras: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 7l-7 5 7 5V7z" />
+      <rect x="1" y="5" width="15" height="14" rx="2" />
+    </svg>
+  ),
+  reports: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 20V10" />
+      <path d="M12 20V4" />
+      <path d="M6 20v-6" />
+    </svg>
+  ),
+  users: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+  sun: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5" />
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+    </svg>
+  ),
+  moon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  ),
+  globe: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  ),
+  logout: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  ),
+  collapse: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="11 17 6 12 11 7" />
+      <polyline points="18 17 13 12 18 7" />
+    </svg>
+  ),
+  chevron: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  )
 };
+
+const navItems = [
+  { id: 'overview', label: { es: 'Resumen', en: 'Overview' }, icon: 'overview' },
+  { id: 'cameras', label: { es: 'Cámaras', en: 'Cameras' }, icon: 'cameras' },
+  { id: 'reports', label: { es: 'Reportes', en: 'Reports' }, icon: 'reports' },
+  { id: 'users', label: { es: 'Usuarios', en: 'Users' }, icon: 'users' }
+];
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
   activeModule, 
@@ -84,133 +93,447 @@ export const Sidebar: React.FC<SidebarProps> = ({
   collapsed, 
   onToggleCollapse 
 }) => {
-  const { t } = useLanguage();
+  const { language, toggleLanguage } = useLanguage();
   const { user, logout } = useAuth();
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [hovered, setHovered] = useState<string | null>(null);
 
-  const handleLogout = () => {
-    logout();
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
+
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
   };
 
-  return (
-    <div 
-      className={`${collapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out`}
-      style={{ 
-        background: `linear-gradient(180deg, ${COLORS.primary.light}15 0%, ${COLORS.secondary.white} 100%)`,
-        borderColor: `${COLORS.primary.light}30`
-      }}
-    >
-      {/* Header */}
-      <div className="p-4 border-b" style={{ borderColor: `${COLORS.primary.light}30` }}>
-        <div className="flex items-center justify-between">
-          {!collapsed && (
-            <div className="flex items-center space-x-3">
-              <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                style={{ background: COLORS.gradients.primary }}
-              >
-                P
-              </div>
-              <h1 className="text-lg font-bold" style={{ color: COLORS.text.dark }}>
-                PARKINTIA
-              </h1>
-            </div>
-          )}
-          <button
-            onClick={onToggleCollapse}
-            className={`p-2 rounded-lg hover:bg-gray-100 transition-colors ${collapsed ? 'mx-auto' : ''}`}
-            style={{ color: COLORS.text.light }}
-          >
-            <svg className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-      </div>
+  const handleSelect = (id: string) => {
+    onModuleSelect(id);
+    setMobileOpen(false);
+  };
 
-      {/* User Info */}
-      {!collapsed && (
-        <div className="p-4 border-b" style={{ borderColor: `${COLORS.primary.light}30` }}>
-          <div className="flex items-center space-x-3">
-            <div 
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
-              style={{ background: COLORS.gradients.primary }}
+  // Mobile Bottom Navigation
+  const MobileNav = () => (
+    <nav 
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-2 pb-2"
+      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }}
+    >
+      <div 
+        className="flex items-center justify-around py-2 px-1 rounded-2xl backdrop-blur-xl"
+        style={{ 
+          backgroundColor: `${colors.surface}ee`,
+          border: `1px solid ${colors.border}`,
+          boxShadow: `0 -4px 30px ${isDarkMode ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.1)'}`
+        }}
+      >
+        {navItems.map((item) => {
+          const isActive = activeModule === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleSelect(item.id)}
+              className="flex flex-col items-center gap-1 px-4 py-2.5 rounded-xl transition-all duration-300"
+              style={{
+                backgroundColor: isActive ? `${colors.accent}15` : 'transparent',
+                transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                color: isActive ? colors.accent : colors.textSecondary
+              }}
             >
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
+              <div className="w-5 h-5">
+                {NavIcons[item.icon as keyof typeof NavIcons]}
+              </div>
+              <span 
+                className="text-[10px] font-semibold"
+                style={{ color: isActive ? colors.accent : colors.textSecondary }}
+              >
+                {item.label[language as 'es' | 'en']}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+
+  // Desktop Sidebar
+  return (
+    <>
+      {/* Mobile Bottom Navigation */}
+      <MobileNav />
+
+      {/* Desktop Sidebar */}
+      <aside 
+        className={`
+          hidden lg:flex flex-col
+          ${collapsed ? 'w-20' : 'w-72'}
+          h-screen sticky top-0
+          transition-all duration-500 ease-in-out
+        `}
+        style={{ 
+          backgroundColor: colors.surface,
+          borderRight: `1px solid ${colors.border}`,
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
+        {/* ══════════ TOP: BRAND ══════════ */}
+        <div className="p-4">
+          <div 
+            className={`
+              flex items-center gap-3 p-3 rounded-2xl
+              transition-all duration-500 ease-in-out
+              ${collapsed ? 'justify-center' : ''}
+            `}
+            style={{ 
+              backgroundColor: `${colors.accent}08`,
+              border: `1px solid ${colors.accent}15`
+            }}
+          >
+            {/* Logo */}
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-500 ease-in-out hover:scale-105"
+              style={{ 
+                backgroundColor: colors.accent,
+                boxShadow: `0 4px 15px ${colors.accent}30`
+              }}
+            >
+              <span className="text-white font-black text-lg">P</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate" style={{ color: COLORS.text.dark }}>
-                {user?.name || 'Usuario'}
-              </p>
-              <p className="text-xs truncate" style={{ color: COLORS.text.light }}>
-                {user?.email || 'email@ejemplo.com'}
-              </p>
+            
+            <div 
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+              }`}
+              style={{ 
+                transitionDelay: collapsed ? '0ms' : '150ms'
+              }}
+            >
+              <h1 className="text-lg font-bold whitespace-nowrap" style={{ color: colors.textPrimary }}>
+                Parkintia
+              </h1>
+              <div className="flex items-center gap-1.5">
+                <div 
+                  className="w-2 h-2 rounded-full animate-pulse"
+                  style={{ backgroundColor: COLORS.status.success }}
+                />
+                <span className="text-xs font-medium whitespace-nowrap" style={{ color: COLORS.status.success }}>
+                  {language === 'es' ? 'Sistema activo' : 'System active'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item) => (
-            <li key={item.id}>
-              <button
-                onClick={() => onModuleSelect(item.id)}
-                className={`w-full flex items-center ${collapsed ? 'justify-center px-2 py-3' : 'space-x-3 px-3 py-2'} rounded-lg transition-all duration-200 ${
-                  activeModule === item.id
-                    ? 'text-white shadow-lg transform scale-105'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+        {/* ══════════ NAVIGATION ══════════ */}
+        <div className="flex-1 px-3 overflow-y-auto">
+          <div className="space-y-1.5">
+            {navItems.map((item, index) => {
+              const isActive = activeModule === item.id;
+              const isHovered = hovered === item.id;
+              const label = item.label[language as 'es' | 'en'];
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleSelect(item.id)}
+                  onMouseEnter={() => setHovered(item.id)}
+                  onMouseLeave={() => setHovered(null)}
+                  className={`
+                    group relative w-full rounded-xl overflow-hidden cursor-pointer
+                    transition-all duration-300 ease-out
+                    ${collapsed ? 'p-3' : 'p-3.5'}
+                  `}
+                  style={{
+                    backgroundColor: isActive 
+                      ? colors.accent 
+                      : isHovered 
+                        ? `${colors.accent}10` 
+                        : 'transparent',
+                    transform: isActive ? 'scale(1.02)' : isHovered ? 'translateX(4px)' : 'translateX(0)',
+                    animationDelay: `${index * 50}ms`
+                  }}
+                >
+                  <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                    {/* Icon */}
+                    <div 
+                      className={`
+                        w-5 h-5 flex-shrink-0 transition-transform duration-300
+                        ${isHovered && !isActive ? 'scale-110' : ''}
+                      `}
+                      style={{ 
+                        color: isActive ? '#FFFFFF' : colors.accent
+                      }}
+                    >
+                      {NavIcons[item.icon as keyof typeof NavIcons]}
+                    </div>
+                    
+                    <div 
+                      className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                        collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+                      }`}
+                      style={{ 
+                        transitionDelay: collapsed ? '0ms' : '200ms'
+                      }}
+                    >
+                      <span 
+                        className="text-sm font-semibold flex-1 text-left transition-colors duration-300 whitespace-nowrap"
+                        style={{ 
+                          color: isActive ? '#FFFFFF' : colors.textPrimary
+                        }}
+                      >
+                        {label}
+                      </span>
+                    </div>
+                    
+                    {/* Active Arrow */}
+                    {isActive && !collapsed && (
+                      <div 
+                        className="transition-all duration-500 ease-in-out"
+                        style={{ 
+                          transitionDelay: '250ms',
+                          opacity: collapsed ? 0 : 1
+                        }}
+                      >
+                        <svg 
+                          className="w-4 h-4 text-white" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tooltip for collapsed */}
+                  {collapsed && (
+                    <div 
+                      className="
+                        absolute left-full ml-3 top-1/2 -translate-y-1/2
+                        px-3 py-2 rounded-lg whitespace-nowrap
+                        opacity-0 group-hover:opacity-100 pointer-events-none
+                        transition-all duration-200 z-50
+                      "
+                      style={{ 
+                        backgroundColor: colors.textPrimary,
+                        color: colors.surface,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                      }}
+                    >
+                      <span className="text-sm font-medium">{label}</span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ══════════ BOTTOM: CONTROLS + USER ══════════ */}
+        <div className="p-3 space-y-3" style={{ borderTop: `1px solid ${colors.border}` }}>
+          
+          {/* Quick Settings Row */}
+          <div className={`flex ${collapsed ? 'flex-col' : 'flex-row'} gap-2`}>
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`
+                flex items-center justify-center gap-2 rounded-xl cursor-pointer
+                transition-all duration-500 ease-in-out hover:scale-105 active:scale-95
+                ${collapsed ? 'p-3' : 'flex-1 py-2.5 px-3'}
+              `}
+              style={{ 
+                backgroundColor: isDarkMode ? `${COLORS.status.warning}15` : `${colors.primary}10`,
+                color: isDarkMode ? COLORS.status.warning : colors.primary
+              }}
+            >
+              <div className="w-4 h-4 transition-transform duration-500 ease-in-out">
+                {isDarkMode ? NavIcons.sun : NavIcons.moon}
+              </div>
+              <span 
+                className={`text-xs font-semibold transition-all duration-500 ease-in-out overflow-hidden whitespace-nowrap ${
+                  collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
                 }`}
-                style={{
-                  backgroundColor: activeModule === item.id ? COLORS.primary.medium : 'transparent',
-                  color: activeModule === item.id ? COLORS.secondary.white : COLORS.text.light
+                style={{ 
+                  transitionDelay: collapsed ? '0ms' : '100ms'
+                }}
+              >
+                {isDarkMode ? 'Light' : 'Dark'}
+              </span>
+            </button>
+
+            {/* Language Toggle */}
+            <button
+              onClick={toggleLanguage}
+              className={`
+                flex items-center justify-center gap-2 rounded-xl cursor-pointer
+                transition-all duration-500 ease-in-out hover:scale-105 active:scale-95
+                ${collapsed ? 'p-3' : 'flex-1 py-2.5 px-3'}
+              `}
+              style={{ 
+                backgroundColor: `${colors.accent}10`,
+                color: colors.accent
+              }}
+            >
+              <div className="w-4 h-4 transition-transform duration-500 ease-in-out">
+                {NavIcons.globe}
+              </div>
+              <span 
+                className={`text-xs font-bold uppercase transition-all duration-500 ease-in-out overflow-hidden whitespace-nowrap ${
+                  collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+                }`}
+                style={{ 
+                  transitionDelay: collapsed ? '0ms' : '100ms'
+                }}
+              >
+                {language}
+              </span>
+            </button>
+
+            {/* Collapse Toggle */}
+            <button
+              onClick={onToggleCollapse}
+              className={`
+                flex items-center justify-center rounded-xl cursor-pointer
+                transition-all duration-500 ease-in-out hover:scale-105 active:scale-95
+                ${collapsed ? 'p-3' : 'py-2.5 px-3'}
+              `}
+              style={{ 
+                backgroundColor: `${colors.textSecondary}10`,
+                color: colors.textSecondary
+              }}
+            >
+              <div className={`w-4 h-4 transition-transform duration-500 ease-in-out ${collapsed ? 'rotate-180' : ''}`}>
+                {NavIcons.collapse}
+              </div>
+            </button>
+          </div>
+
+          {/* User Card - Animación suave al expandir/comprimir */}
+          <div 
+            className={`
+              transition-all duration-500 ease-in-out overflow-hidden
+              ${collapsed ? 'max-h-0 opacity-0' : 'max-h-32 opacity-100'}
+            `}
+            style={{ 
+              transitionDelay: collapsed ? '0ms' : '300ms'
+            }}
+          >
+            {!collapsed && (
+              <div 
+                className="flex items-center gap-3 p-3 rounded-xl"
+                style={{ 
+                  backgroundColor: `${colors.primary}05`,
+                  border: `1px solid ${colors.border}`
+                }}
+              >
+                {/* Avatar */}
+                <div 
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0 transition-transform duration-500 ease-in-out"
+                  style={{ 
+                    backgroundColor: colors.accent,
+                    boxShadow: `0 2px 10px ${colors.accent}30`,
+                    transform: collapsed ? 'scale(0)' : 'scale(1)',
+                    transitionDelay: collapsed ? '0ms' : '350ms'
+                  }}
+                >
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                
+                <div 
+                  className={`flex-1 min-w-0 transition-all duration-500 ease-in-out ${
+                    collapsed ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'
+                  }`}
+                  style={{ 
+                    transitionDelay: collapsed ? '0ms' : '400ms'
+                  }}
+                >
+                  <p className="text-sm font-semibold truncate" style={{ color: colors.textPrimary }}>
+                    {user?.name || 'Usuario Demo'}
+                  </p>
+                  <p className="text-xs truncate" style={{ color: colors.textSecondary }}>
+                    {user?.email || 'demo@parkintia.com'}
+                  </p>
+                </div>
+
+                {/* Logout Button integrado */}
+                <button
+                  onClick={logout}
+                  className="p-2 rounded-lg transition-all duration-300 hover:scale-110 cursor-pointer"
+                  style={{ 
+                    color: colors.textSecondary,
+                    transform: collapsed ? 'scale(0)' : 'scale(1)',
+                    transitionDelay: collapsed ? '0ms' : '450ms'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = `${COLORS.status.error}15`;
+                    e.currentTarget.style.color = COLORS.status.error;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = colors.textSecondary;
+                  }}
+                >
+                  <div className="w-4 h-4">
+                    {NavIcons.logout}
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Logout cuando está comprimido - Animación suave */}
+          <div 
+            className={`
+              transition-all duration-500 ease-in-out overflow-hidden
+              ${collapsed ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}
+            `}
+            style={{ 
+              transitionDelay: collapsed ? '200ms' : '0ms'
+            }}
+          >
+            {collapsed && (
+              <button
+                onClick={logout}
+                className="w-full p-3 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer"
+                style={{ 
+                  backgroundColor: `${COLORS.status.error}08`,
+                  color: COLORS.status.error,
+                  transform: 'scale(1)',
+                  transitionDelay: '250ms'
                 }}
                 onMouseEnter={(e) => {
-                  if (activeModule !== item.id) {
-                    e.currentTarget.style.backgroundColor = `${COLORS.primary.light}20`;
-                    e.currentTarget.style.color = COLORS.primary.medium;
-                  }
+                  e.currentTarget.style.backgroundColor = `${COLORS.status.error}20`;
+                  e.currentTarget.style.transform = 'scale(1.05)';
                 }}
                 onMouseLeave={(e) => {
-                  if (activeModule !== item.id) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = COLORS.text.light;
-                  }
+                  e.currentTarget.style.backgroundColor = `${COLORS.status.error}08`;
+                  e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
-                {getIcon(item.icon, collapsed)}
-                {!collapsed && (
-                  <span className="font-medium">
-                    {t(item.translationKey)}
-                  </span>
-                )}
+                <div className="w-5 h-5">
+                  {NavIcons.logout}
+                </div>
               </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t" style={{ borderColor: `${COLORS.primary.light}30` }}>
-        {!collapsed && (
-          <div className="mb-4">
-            <LanguageToggle />
+            )}
           </div>
-        )}
-        
-        <button
-          onClick={handleLogout}
-          className={`w-full flex items-center ${collapsed ? 'justify-center px-2 py-3' : 'space-x-3 px-3 py-2'} rounded-lg transition-colors hover:bg-red-50 hover:text-red-600`}
-          style={{ color: COLORS.text.light }}
-        >
-          <LogoutIcon collapsed={collapsed} />
-          {!collapsed && (
-            <span className="font-medium">
-              {t('logout')}
-            </span>
-          )}
-        </button>
-      </div>
-    </div>
+        </div>
+      </aside>
+    </>
   );
 };

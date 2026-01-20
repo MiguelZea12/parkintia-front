@@ -6,6 +6,7 @@ import { Language, translations, getTranslation } from '@/config/i18n';
 interface LanguageContextType {
   language: Language;
   setLanguage: (language: Language) => void;
+  toggleLanguage: () => void;
   t: (key: keyof typeof translations.es) => string;
 }
 
@@ -27,12 +28,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('language', newLanguage);
   };
 
+  const handleToggleLanguage = () => {
+    const newLanguage = language === 'es' ? 'en' : 'es';
+    handleSetLanguage(newLanguage);
+  };
+
   const t = (key: keyof typeof translations.es) => {
     return getTranslation(language, key);
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, toggleLanguage: handleToggleLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );

@@ -56,7 +56,7 @@ const ReportCard: React.FC<{ report: Report; onDownload: (report: Report) => voi
       case 'completed': return '#10B981';
       case 'generating': return '#F59E0B';
       case 'failed': return '#EF4444';
-      default: return COLORS.text.light;
+      default: return COLORS.light.textSecondary;
     }
   };
 
@@ -104,15 +104,15 @@ const ReportCard: React.FC<{ report: Report; onDownload: (report: Report) => voi
         <div className="flex items-center space-x-3">
           <div 
             className="p-2 rounded-lg"
-            style={{ backgroundColor: `${COLORS.primary.medium}20`, color: COLORS.primary.medium }}
+            style={{ backgroundColor: `${COLORS.light.accent}20`, color: COLORS.light.accent }}
           >
             {getTypeIcon(report.type)}
           </div>
           <div>
-            <h3 className="font-semibold" style={{ color: COLORS.text.dark }}>
+            <h3 className="font-semibold" style={{ color: COLORS.light.textPrimary }}>
               {report.name}
             </h3>
-            <p className="text-sm" style={{ color: COLORS.text.light }}>
+            <p className="text-sm" style={{ color: COLORS.light.textSecondary }}>
               {t('dailyReport')} • {report.size}
             </p>
           </div>
@@ -122,7 +122,7 @@ const ReportCard: React.FC<{ report: Report; onDownload: (report: Report) => voi
             <button
               onClick={() => onDownload(report)}
               className="p-2 rounded-lg hover:bg-green-50 hover:text-green-600 transition-colors"
-              style={{ color: COLORS.text.light }}
+              style={{ color: COLORS.light.textSecondary }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -132,7 +132,7 @@ const ReportCard: React.FC<{ report: Report; onDownload: (report: Report) => voi
           <button
             onClick={() => onDelete(report.id)}
             className="p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
-            style={{ color: COLORS.text.light }}
+            style={{ color: COLORS.light.textSecondary }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -142,7 +142,7 @@ const ReportCard: React.FC<{ report: Report; onDownload: (report: Report) => voi
       </div>
 
       <div className="flex items-center justify-between">
-        <span className="text-sm" style={{ color: COLORS.text.light }}>
+        <span className="text-sm" style={{ color: COLORS.light.textSecondary }}>
           {report.generatedDate}
         </span>
         <div className="flex items-center space-x-2">
@@ -208,10 +208,10 @@ export const ReportsModule: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold" style={{ color: COLORS.text.dark }}>
+          <h1 className="text-3xl font-bold" style={{ color: COLORS.light.textPrimary }}>
             {t('reportsManagement')}
           </h1>
-          <p className="text-lg mt-1" style={{ color: COLORS.text.light }}>
+          <p className="text-lg mt-1" style={{ color: COLORS.light.textSecondary }}>
             {completedReports} reportes completados • {generatingReports} generando
           </p>
         </div>
@@ -219,7 +219,7 @@ export const ReportsModule: React.FC = () => {
           variant="primary"
           onClick={() => setShowGenerateForm(true)}
           style={{ 
-            background: COLORS.gradients.primary 
+            background: COLORS.light.accent 
           }}
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -290,13 +290,13 @@ export const ReportsModule: React.FC = () => {
               >
                 {reportType.icon}
               </div>
-              <h3 className="font-semibold mb-1" style={{ color: COLORS.text.dark }}>
+              <h3 className="font-semibold mb-1" style={{ color: COLORS.light.textPrimary }}>
                 {reportType.type === 'daily' ? t('dailyReport') : 
                  reportType.type === 'weekly' ? t('weeklyReport') :
                  reportType.type === 'monthly' ? t('monthlyReport') :
                  t('customReport')}
               </h3>
-              <p className="text-sm" style={{ color: COLORS.text.light }}>
+              <p className="text-sm" style={{ color: COLORS.light.textSecondary }}>
                 Generar {reportType.type === 'daily' ? t('dailyReport').toLowerCase() : 
                          reportType.type === 'weekly' ? t('weeklyReport').toLowerCase() :
                          reportType.type === 'monthly' ? t('monthlyReport').toLowerCase() :
@@ -310,31 +310,31 @@ export const ReportsModule: React.FC = () => {
       {/* Analytics Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.text.dark }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.light.textPrimary }}>
             Estadísticas de Reportes
           </h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span style={{ color: COLORS.text.light }}>Reportes generados este mes</span>
-              <span className="font-semibold" style={{ color: COLORS.text.dark }}>24</span>
+              <span style={{ color: COLORS.light.textSecondary }}>Reportes generados este mes</span>
+              <span className="font-semibold" style={{ color: COLORS.light.textPrimary }}>24</span>
             </div>
             <div className="flex items-center justify-between">
-              <span style={{ color: COLORS.text.light }}>Reportes descargados</span>
-              <span className="font-semibold" style={{ color: COLORS.text.dark }}>18</span>
+              <span style={{ color: COLORS.light.textSecondary }}>Reportes descargados</span>
+              <span className="font-semibold" style={{ color: COLORS.light.textPrimary }}>18</span>
             </div>
             <div className="flex items-center justify-between">
-              <span style={{ color: COLORS.text.light }}>Tamaño promedio</span>
-              <span className="font-semibold" style={{ color: COLORS.text.dark }}>3.2 MB</span>
+              <span style={{ color: COLORS.light.textSecondary }}>Tamaño promedio</span>
+              <span className="font-semibold" style={{ color: COLORS.light.textPrimary }}>3.2 MB</span>
             </div>
             <div className="flex items-center justify-between">
-              <span style={{ color: COLORS.text.light }}>Tiempo promedio de generación</span>
-              <span className="font-semibold" style={{ color: COLORS.text.dark }}>2.5 min</span>
+              <span style={{ color: COLORS.light.textSecondary }}>Tiempo promedio de generación</span>
+              <span className="font-semibold" style={{ color: COLORS.light.textPrimary }}>2.5 min</span>
             </div>
           </div>
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.text.dark }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.light.textPrimary }}>
             Tipos de Reportes Populares
           </h3>
           <div className="space-y-3">
@@ -347,10 +347,10 @@ export const ReportsModule: React.FC = () => {
               <div key={index} className="flex items-center space-x-3">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium" style={{ color: COLORS.text.dark }}>
+                    <span className="text-sm font-medium" style={{ color: COLORS.light.textPrimary }}>
                       {item.name}
                     </span>
-                    <span className="text-sm" style={{ color: COLORS.text.light }}>
+                    <span className="text-sm" style={{ color: COLORS.light.textSecondary }}>
                       {item.percentage}%
                     </span>
                   </div>
@@ -375,13 +375,13 @@ export const ReportsModule: React.FC = () => {
       {/* Reports List */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold" style={{ color: COLORS.text.dark }}>
+          <h3 className="text-lg font-semibold" style={{ color: COLORS.light.textPrimary }}>
             Reportes Recientes
           </h3>
           <div className="flex space-x-3">
             <select 
               className="px-3 py-2 border rounded-lg text-sm"
-              style={{ borderColor: COLORS.primary.light }}
+              style={{ borderColor: COLORS.light.border }}
             >
               <option>Todos los tipos</option>
               <option>Diarios</option>
@@ -390,7 +390,7 @@ export const ReportsModule: React.FC = () => {
             </select>
             <select 
               className="px-3 py-2 border rounded-lg text-sm"
-              style={{ borderColor: COLORS.primary.light }}
+              style={{ borderColor: COLORS.light.border }}
             >
               <option>Todos los estados</option>
               <option>Completados</option>
@@ -417,17 +417,17 @@ export const ReportsModule: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md mx-4">
             <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.text.dark }}>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.light.textPrimary }}>
                 {t('generateReport')}
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.light.textPrimary }}>
                     Tipo de Reporte
                   </label>
                   <select 
                     className="w-full px-4 py-3 border rounded-xl"
-                    style={{ borderColor: COLORS.primary.light }}
+                    style={{ borderColor: COLORS.light.border }}
                     value={selectedReportType}
                     onChange={(e) => setSelectedReportType(e.target.value)}
                   >
@@ -454,12 +454,12 @@ export const ReportsModule: React.FC = () => {
                 )}
                 
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.light.textPrimary }}>
                     Formato
                   </label>
                   <select 
                     className="w-full px-4 py-3 border rounded-xl"
-                    style={{ borderColor: COLORS.primary.light }}
+                    style={{ borderColor: COLORS.light.border }}
                   >
                     <option value="pdf">PDF</option>
                     <option value="excel">Excel</option>
@@ -479,7 +479,7 @@ export const ReportsModule: React.FC = () => {
                 <Button
                   variant="primary"
                   onClick={handleGenerate}
-                  style={{ background: COLORS.gradients.primary }}
+                  style={{ background: COLORS.light.accent }}
                   fullWidth
                 >
                   {t('generateReport')}

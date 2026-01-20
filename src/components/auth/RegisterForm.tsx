@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
@@ -57,12 +57,25 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
   const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [credentials, setCredentials] = useState<RegisterCredentials>({
     name: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
+
+  useEffect(() => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,18 +103,35 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2" style={{ color: COLORS.text.dark }}>
+        <h2 
+          className="text-3xl font-bold mb-2"
+          style={{ color: colors.textPrimary }}
+        >
           {t('createYourAccount')}
         </h2>
-        <p className="text-base" style={{ color: COLORS.text.light }}>
+        <p 
+          className="text-base"
+          style={{ color: colors.textSecondary }}
+        >
           {t('createAccountDescription')}
         </p>
       </div>
 
       {/* Error Alert */}
       {authError && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-          <p className="text-red-700 text-sm font-medium">{authError.message}</p>
+        <div 
+          className="mb-6 p-4 rounded-xl"
+          style={{ 
+            backgroundColor: `${COLORS.status.error}15`,
+            border: `1px solid ${COLORS.status.error}30`
+          }}
+        >
+          <p 
+            className="text-sm font-medium"
+            style={{ color: COLORS.status.error }}
+          >
+            {authError.message}
+          </p>
         </div>
       )}
 
@@ -142,11 +172,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
           />
           <button
             type="button"
-            className="absolute right-4 top-3 transition-colors duration-200"
-            style={{ color: COLORS.text.light }}
+            className="absolute right-4 top-3 transition-colors duration-200 hover:scale-110"
+            style={{ color: colors.textSecondary }}
             onClick={() => setShowPassword(!showPassword)}
-            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.medium}
-            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text.light}
+            onMouseEnter={(e) => e.currentTarget.style.color = colors.accent}
+            onMouseLeave={(e) => e.currentTarget.style.color = colors.textSecondary}
           >
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
@@ -165,11 +195,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
           />
           <button
             type="button"
-            className="absolute right-4 top-3 transition-colors duration-200"
-            style={{ color: COLORS.text.light }}
+            className="absolute right-4 top-3 transition-colors duration-200 hover:scale-110"
+            style={{ color: colors.textSecondary }}
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.medium}
-            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text.light}
+            onMouseEnter={(e) => e.currentTarget.style.color = colors.accent}
+            onMouseLeave={(e) => e.currentTarget.style.color = colors.textSecondary}
           >
             {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
@@ -179,11 +209,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         <div className="flex items-start space-x-3">
           <input 
             type="checkbox" 
-            className="w-4 h-4 mt-1 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2" 
-            style={{ accentColor: COLORS.primary.medium }}
+            className="w-4 h-4 mt-1 rounded border-2 transition-colors duration-200"
+            style={{ 
+              accentColor: colors.accent,
+              borderColor: colors.border
+            }}
             required 
           />
-          <p className="text-sm leading-relaxed" style={{ color: COLORS.text.light }}>
+          <p 
+            className="text-sm leading-relaxed"
+            style={{ color: colors.textSecondary }}
+          >
             {t('agreeToTerms')}
           </p>
         </div>
@@ -209,14 +245,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       {/* Login Link */}
       {showLoginLink && (
         <div className="mt-8 text-center">
-          <p style={{ color: COLORS.text.light }}>
+          <p style={{ color: colors.textSecondary }}>
             {t('alreadyHaveAccount')}{' '}
             <button
               onClick={onToggleMode}
-              className="font-semibold transition-colors duration-200"
-              style={{ color: COLORS.primary.medium }}
-              onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.dark}
-              onMouseLeave={(e) => e.currentTarget.style.color = COLORS.primary.medium}
+              className="font-semibold transition-colors duration-200 hover:underline"
+              style={{ color: colors.accent }}
+              onMouseEnter={(e) => e.currentTarget.style.color = colors.accentDark}
+              onMouseLeave={(e) => e.currentTarget.style.color = colors.accent}
             >
               {t('signIn')}
             </button>

@@ -260,7 +260,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ isOpen, onClose }) => {
       {/* Header */}
       <div 
         className="flex items-center justify-between p-4 rounded-t-lg text-white"
-        style={{ background: COLORS.gradients.primary }}
+        style={{ background: COLORS.light.accent }}
       >
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">

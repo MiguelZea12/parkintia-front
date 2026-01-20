@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useProtectedRoute } from '@/hooks/useAuthRedirect';
 import { useLanguage } from '@/context/LanguageContext';
@@ -18,9 +18,33 @@ export default function DashboardPage() {
   const { t } = useLanguage();
   const [activeModule, setActiveModule] = useState<ActiveModule>('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  useEffect(() => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
   
   // Proteger la ruta - usuarios no autenticados van al login
-  const { isLoading } = useProtectedRoute();
+  const { isLoading, shouldRender } = useProtectedRoute();
 
   const renderActiveModule = () => {
     switch (activeModule) {
@@ -35,22 +59,28 @@ export default function DashboardPage() {
       case 'parking':
         return (
           <div>
-            <h1 className="text-3xl font-bold mb-4" style={{ color: COLORS.text.dark }}>
+            <h1 className="text-3xl font-bold mb-4" style={{ color: colors.textPrimary }}>
               {t('parking')}
             </h1>
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+            <div 
+              className="rounded-xl shadow-sm p-8 text-center"
+              style={{ 
+                backgroundColor: colors.surface,
+                border: `1px solid ${colors.border}`
+              }}
+            >
               <div 
                 className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: `${COLORS.primary.light}20`, color: COLORS.primary.medium }}
+                style={{ backgroundColor: `${colors.accent}20`, color: colors.accent }}
               >
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2" style={{ color: COLORS.text.dark }}>
+              <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>
                 Módulo de Parking
               </h3>
-              <p style={{ color: COLORS.text.light }}>
+              <p style={{ color: colors.textSecondary }}>
                 Este módulo estará disponible próximamente. Aquí podrás gestionar espacios de parking, 
                 ver ocupación en tiempo real y administrar reservas.
               </p>
@@ -60,22 +90,28 @@ export default function DashboardPage() {
       case 'analytics':
         return (
           <div>
-            <h1 className="text-3xl font-bold mb-4" style={{ color: COLORS.text.dark }}>
+            <h1 className="text-3xl font-bold mb-4" style={{ color: colors.textPrimary }}>
               {t('analytics')}
             </h1>
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+            <div 
+              className="rounded-xl shadow-sm p-8 text-center"
+              style={{ 
+                backgroundColor: colors.surface,
+                border: `1px solid ${colors.border}`
+              }}
+            >
               <div 
                 className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: `${COLORS.primary.light}20`, color: COLORS.primary.medium }}
+                style={{ backgroundColor: `${colors.accent}20`, color: colors.accent }}
               >
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2" style={{ color: COLORS.text.dark }}>
+              <h3 className="text-xl font-semibold mb-2" style={{ color: colors.textPrimary }}>
                 Módulo de Analíticas
               </h3>
-              <p style={{ color: COLORS.text.light }}>
+              <p style={{ color: colors.textSecondary }}>
                 Este módulo estará disponible próximamente. Aquí podrás ver gráficos avanzados, 
                 métricas de rendimiento y análisis detallados del sistema.
               </p>
@@ -87,22 +123,29 @@ export default function DashboardPage() {
     }
   };
 
-  if (isLoading) {
+  // Mostrar loader mientras se verifica autenticación o si no debería renderizar
+  if (isLoading || !shouldRender) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: colors.background }}
+      >
         <div className="text-center">
           <div 
             className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"
-            style={{ borderColor: COLORS.primary.medium }}
+            style={{ borderColor: colors.accent }}
           ></div>
-          <p style={{ color: COLORS.text.light }}>{t('loading')}</p>
+          <p style={{ color: colors.textSecondary }}>{t('loading')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div 
+      className="flex h-screen"
+      style={{ backgroundColor: colors.background }}
+    >
       <Sidebar
         activeModule={activeModule}
         onModuleSelect={(module) => setActiveModule(module as ActiveModule)}

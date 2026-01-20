@@ -9,6 +9,30 @@ export const ChatbotToggle: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true); // MODO DEMO: Siempre online
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
 
   // MODO DEMO: Comentamos la verificación automática
   // useEffect(() => {
@@ -49,20 +73,21 @@ export const ChatbotToggle: React.FC = () => {
         <button
           onClick={toggleChat}
           className={`
-            group relative w-14 h-14 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300
+            group relative w-14 h-14 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300 cursor-pointer
             ${isOpen 
               ? 'bg-gray-600 hover:bg-gray-700' 
               : 'text-white hover:shadow-xl'
             }
           `}
           style={{ 
-            background: isOpen ? undefined : COLORS.gradients.primary,
-            boxShadow: isOpen ? undefined : '0 8px 32px rgba(59, 130, 246, 0.4)'
+            background: isOpen ? undefined : colors.accent,
+            boxShadow: isOpen ? undefined : `0 8px 32px ${colors.accent}40`,
+            cursor: 'pointer'
           }}
           aria-label={isOpen ? 'Cerrar chat' : 'Abrir chat'}
         >
           {/* Icono principal */}
-          <div className="flex items-center justify-center w-full h-full">
+          <div className="flex items-center justify-center w-full h-full cursor-pointer">
             {isOpen ? (
               // Icono de cerrar (X)
               <svg 
@@ -100,14 +125,14 @@ export const ChatbotToggle: React.FC = () => {
           {!isOpen && (
             <div className="absolute -top-1 -right-1">
               <div className={`
-                w-4 h-4 rounded-full border-2 border-white transition-colors duration-300
-                ${isOnline 
-                  ? 'bg-green-500' 
-                  : isCheckingStatus 
-                    ? 'bg-yellow-500' 
-                    : 'bg-red-500'
-                }
-              `}>
+                  w-4 h-4 rounded-full border-2 border-white transition-colors duration-300 cursor-pointer
+                  ${isOnline 
+                    ? 'bg-green-500' 
+                    : isCheckingStatus 
+                      ? 'bg-yellow-500' 
+                      : 'bg-red-500'
+                  }
+                `}>
                 {isCheckingStatus && (
                   <div className="absolute inset-0 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
                 )}
@@ -118,7 +143,7 @@ export const ChatbotToggle: React.FC = () => {
           {/* Efecto de pulso para llamar la atención */}
           {!isOpen && isOnline && (
             <div className="absolute inset-0 rounded-full animate-pulse opacity-30" 
-                 style={{ background: COLORS.gradients.primary }}>
+                 style={{ background: colors.accent }}>
             </div>
           )}
         </button>

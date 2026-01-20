@@ -7,7 +7,7 @@ import {
 } from '@/types/chatbot';
 
 // Configuración base de la API del chatbot
-const CHATBOT_API_BASE = process.env.NEXT_PUBLIC_CHATBOT_API_URL || 'http://localhost:3001';
+const CHATBOT_API_BASE = process.env.NEXT_PUBLIC_CHATBOT_API_URL || 'http://localhost:4000';
 
 class ChatbotService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

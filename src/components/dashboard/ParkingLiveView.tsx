@@ -90,7 +90,7 @@ export default function ParkingLiveView({ cameraId, videoSource }: ParkingLiveVi
       </div>
 
       {/* Lista de Espacios */}
-      {status && (
+      {status && status.spaces && (
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
           <h3 className="font-semibold mb-4">Estado de Espacios</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
@@ -118,7 +118,7 @@ export default function ParkingLiveView({ cameraId, videoSource }: ParkingLiveVi
       <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600 dark:text-gray-400">
-            Última actualización: {status ? new Date(status.lastUpdate).toLocaleTimeString() : '-'}
+            Última actualización: {status?.lastUpdate ? new Date(status.lastUpdate).toLocaleTimeString() : '-'}
           </span>
           <span className="text-gray-600 dark:text-gray-400">
             Ocupación: {status ? Math.round((status.occupiedSpaces / status.totalSpaces) * 100) : 0}%

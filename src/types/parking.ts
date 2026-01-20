@@ -19,10 +19,11 @@ export interface Camera {
 }
 
 export interface ParkingStatusSummary {
-  cameraId: string;
+  cameraId?: string;
   totalSpaces: number;
   occupiedSpaces: number;
   freeSpaces: number;
-  spaces: ParkingZone[];
-  lastUpdate: Date;
+  spaces?: ParkingZone[];
+  lastUpdate?: Date;
+  occupancyRate?: number;
 }

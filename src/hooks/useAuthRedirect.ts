@@ -13,14 +13,8 @@ export const useAuthRedirect = ({ redirectTo, checkAuth = true }: UseAuthRedirec
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const hasRedirected = useRef(false);
-  const redirectTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Limpiar timeout previo si existe
-    if (redirectTimeout.current) {
-      clearTimeout(redirectTimeout.current);
-    }
-
     // Solo proceder si no estamos cargando y necesitamos verificar auth
     if (!checkAuth || isLoading || hasRedirected.current) {
       return;
@@ -31,19 +25,8 @@ export const useAuthRedirect = ({ redirectTo, checkAuth = true }: UseAuthRedirec
 
     if (shouldRedirect) {
       hasRedirected.current = true;
-      
-      // Usar un pequeño delay para evitar problemas de hidratación
-      redirectTimeout.current = setTimeout(() => {
-        router.push(redirectTo);
-      }, 100);
+      router.push(redirectTo);
     }
-
-    // Cleanup
-    return () => {
-      if (redirectTimeout.current) {
-        clearTimeout(redirectTimeout.current);
-      }
-    };
   }, [isAuthenticated, isLoading, redirectTo, checkAuth, router]);
 
   return {
@@ -66,36 +49,26 @@ export const useAuthRoute = (DASHBOARD: string) => {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const hasRedirected = useRef(false);
-  const redirectTimeout = useRef<NodeJS.Timeout | null>(null);
+  const prevAuthenticated = useRef(isAuthenticated);
 
   useEffect(() => {
-    // Limpiar timeout previo si existe
-    if (redirectTimeout.current) {
-      clearTimeout(redirectTimeout.current);
+    // Si el estado de autenticación cambió de false a true, resetear hasRedirected
+    if (prevAuthenticated.current === false && isAuthenticated === true) {
+      hasRedirected.current = false;
     }
+    prevAuthenticated.current = isAuthenticated;
 
-    // Solo proceder si no estamos cargando
+    // Solo proceder si no estamos cargando y no hemos redirigido ya
     if (isLoading || hasRedirected.current) {
       return;
     }
 
-    // Si el usuario está autenticado, redirigir al dashboard
+    // Si el usuario está autenticado, redirigir al dashboard inmediatamente
     if (isAuthenticated) {
       hasRedirected.current = true;
-      
-      // Usar un pequeño delay para evitar problemas de hidratación
-      redirectTimeout.current = setTimeout(() => {
-        router.push('/dashboard');
-      }, 100);
+      router.push(DASHBOARD);
     }
-
-    // Cleanup
-    return () => {
-      if (redirectTimeout.current) {
-        clearTimeout(redirectTimeout.current);
-      }
-    };
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, DASHBOARD]);
 
   return {
     isLoading,

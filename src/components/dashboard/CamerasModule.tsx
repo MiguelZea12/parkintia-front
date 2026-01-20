@@ -28,36 +28,30 @@ interface Camera {
 
 const mockCameras: Camera[] = [
   {
-    id: 'cam-001',
-    name: 'Entrada Principal',
-    location: 'Zona A - Entrada',
+    id: 'cam-01',
+    name: 'Cámara 01',
+    location: 'Zona Principal',
     status: 'online',
     isActive: true,
-    lastActivity: '2 min ago'
+    lastActivity: '2 min ago',
+    stream: 'http://localhost:4000/camera/video-feed?cameraId=cam-01',
+    totalSpaces: 12,
+    emptySpaces: 8,
+    occupiedSpaces: 4,
+    occupancyRate: 33.3
   },
   {
-    id: 'cam-002',
-    name: 'Parking Norte',
-    location: 'Zona B - Norte',
+    id: 'cam-08',
+    name: 'Cámara 08',
+    location: 'Zona Secundaria',
     status: 'online',
     isActive: true,
-    lastActivity: '5 min ago'
-  },
-  {
-    id: 'cam-003',
-    name: 'Parking Sur',
-    location: 'Zona C - Sur',
-    status: 'offline',
-    isActive: false,
-    lastActivity: '1 hour ago'
-  },
-  {
-    id: 'cam-004',
-    name: 'Salida Principal',
-    location: 'Zona A - Salida',
-    status: 'online',
-    isActive: true,
-    lastActivity: '1 min ago'
+    lastActivity: '1 min ago',
+    stream: 'http://localhost:4000/camera/video-feed?cameraId=cam-08',
+    totalSpaces: 12,
+    emptySpaces: 6,
+    occupiedSpaces: 6,
+    occupancyRate: 50.0
   }
 ];
 
@@ -127,10 +121,10 @@ const CameraCard: React.FC<{
             className={`w-3 h-3 rounded-full ${camera.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`}
           />
           <div>
-            <h3 className="font-semibold" style={{ color: COLORS.text.dark }}>
+            <h3 className="font-semibold" style={{ color: COLORS.light.textPrimary }}>
               {camera.name}
             </h3>
-            <p className="text-sm" style={{ color: COLORS.text.light }}>
+            <p className="text-sm" style={{ color: COLORS.light.textSecondary }}>
               {camera.location}
             </p>
           </div>
@@ -139,7 +133,7 @@ const CameraCard: React.FC<{
           <button
             onClick={() => onViewVideo(camera)}
             className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
-            style={{ color: COLORS.primary.medium }}
+            style={{ color: COLORS.light.accent }}
             title="Ver en pantalla completa"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,7 +143,7 @@ const CameraCard: React.FC<{
           <button
             onClick={() => onEdit(camera)}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            style={{ color: COLORS.primary.medium }}
+            style={{ color: COLORS.light.accent }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -158,7 +152,7 @@ const CameraCard: React.FC<{
           <button
             onClick={() => onDelete(camera.id)}
             className="p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
-            style={{ color: COLORS.text.light }}
+            style={{ color: COLORS.light.textSecondary }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -170,7 +164,7 @@ const CameraCard: React.FC<{
       {/* Camera Preview */}
       <div 
         className="w-full h-48 rounded-lg mb-4 overflow-hidden bg-black cursor-pointer"
-        style={{ backgroundColor: `${COLORS.primary.light}10` }}
+        style={{ backgroundColor: `${COLORS.light.border}10` }}
         onClick={() => onViewVideo(camera)}
       >
         <VideoPlayer 
@@ -186,10 +180,10 @@ const CameraCard: React.FC<{
         {/* Estadísticas de ocupación */}
         <div className="bg-gray-50 rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium" style={{ color: COLORS.text.dark }}>
+            <span className="text-sm font-medium" style={{ color: COLORS.light.textPrimary }}>
               Ocupación del Parking
             </span>
-            <span className="text-sm font-bold" style={{ color: COLORS.primary.medium }}>
+            <span className="text-sm font-bold" style={{ color: COLORS.light.accent }}>
               {occupancyPercentage.toFixed(1)}%
             </span>
           </div>
@@ -197,15 +191,15 @@ const CameraCard: React.FC<{
           <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="text-center">
               <div className="font-semibold text-red-600">{displayStats.occupiedSpaces}</div>
-              <div style={{ color: COLORS.text.light }}>Ocupados</div>
+              <div style={{ color: COLORS.light.textSecondary }}>Ocupados</div>
             </div>
             <div className="text-center">
               <div className="font-semibold text-green-600">{displayStats.freeSpaces}</div>
-              <div style={{ color: COLORS.text.light }}>Libres</div>
+              <div style={{ color: COLORS.light.textSecondary }}>Libres</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold" style={{ color: COLORS.text.dark }}>{displayStats.totalSpaces}</div>
-              <div style={{ color: COLORS.text.light }}>Total</div>
+              <div className="font-semibold" style={{ color: COLORS.light.textPrimary }}>{displayStats.totalSpaces}</div>
+              <div style={{ color: COLORS.light.textSecondary }}>Total</div>
             </div>
           </div>
           
@@ -219,7 +213,7 @@ const CameraCard: React.FC<{
         </div>
 
         <div className="flex items-center justify-between text-sm">
-          <span style={{ color: COLORS.text.light }}>
+          <span style={{ color: COLORS.light.textSecondary }}>
             {t('lastLogin')}: {camera.lastActivity}
           </span>
           <span 
@@ -239,7 +233,7 @@ const CameraCard: React.FC<{
 
 export const CamerasModule: React.FC = () => {
   const { t } = useLanguage();
-  const [cameras, setCameras] = useState<Camera[]>([]);
+  const [cameras, setCameras] = useState<Camera[]>(mockCameras);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCamera, setEditingCamera] = useState<Camera | null>(null);
@@ -283,12 +277,22 @@ export const CamerasModule: React.FC = () => {
 
   // Cargar datos de las cámaras al montar el componente
   useEffect(() => {
-    loadCameraData();
-    // Actualizar datos cada 3 segundos para mejor sincronización
-    const interval = setInterval(() => {
-      loadCameraData();
-    }, 3000);
-    return () => clearInterval(interval);
+    // Usar solo datos mock - no intentar conectar al backend
+    setCameras(mockCameras);
+    
+    // Calcular estadísticas mock
+    const totalSpaces = mockCameras.reduce((sum, cam) => sum + (cam.totalSpaces || 12), 0);
+    const occupiedSpaces = mockCameras.reduce((sum, cam) => sum + (cam.occupiedSpaces || 0), 0);
+    
+    setCameraStats({
+      totalSpaces,
+      occupiedSpaces,
+      emptySpaces: totalSpaces - occupiedSpaces,
+      occupancyRate: totalSpaces > 0 ? (occupiedSpaces / totalSpaces) * 100 : 0
+    });
+    
+    setLastUpdate(new Date().toLocaleTimeString());
+    setLoading(false);
   }, []);
 
   // Cargar estadísticas en vivo desde la primera cámara activa
@@ -334,48 +338,24 @@ export const CamerasModule: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showVideoModal]);
 
-  const loadCameraData = async () => {
-    try {
-      // Cargar cámaras reales desde el backend
-      const realCameras = await parkingService.getCameras();
-      
-      // Convertir al formato del componente
-      const convertedCameras: Camera[] = realCameras.map((cam: any) => ({
-        id: cam.id,
-        name: cam.name,
-        location: cam.description || 'Sin descripción',
-        status: cam.isActive ? 'online' : 'offline',
-        isActive: cam.isActive,
-        lastActivity: cam.updatedAt ? new Date(cam.updatedAt).toLocaleString() : 'Never',
-        occupiedSpaces: 0,
-        emptySpaces: cam.total_parking || 0,
-        totalSpaces: cam.total_parking || 0,
-        occupancyRate: 0
-      }));
-      
-      setCameras(convertedCameras);
-      
-      // Actualizar estadísticas globales con la primera cámara activa
-      if (convertedCameras.length > 0 && convertedCameras[0].status === 'online') {
-        await loadLiveStats(convertedCameras[0].id);
-      }
-      
-      // Cargar datos estadísticos legacy
-      try {
-        const data = await cameraService.getAllCameraData();
-        const stats = cameraService.calculateCameraStats(data);
-        setCameraData(data);
-        setCameraStats(stats);
-      } catch (error) {
-        console.log('Legacy data not available:', error);
-      }
-      
-      setLastUpdate(new Date().toLocaleTimeString());
-    } catch (error) {
-      console.error('Error loading camera data:', error);
-    } finally {
-      setLoading(false);
-    }
+  // Función para recargar datos mock (no intenta conectar al backend)
+  const loadCameraData = () => {
+    setLoading(true);
+    setCameras(mockCameras);
+    
+    // Calcular estadísticas mock
+    const totalSpaces = mockCameras.reduce((sum, cam) => sum + (cam.totalSpaces || 12), 0);
+    const occupiedSpaces = mockCameras.reduce((sum, cam) => sum + (cam.occupiedSpaces || 0), 0);
+    
+    setCameraStats({
+      totalSpaces,
+      occupiedSpaces,
+      emptySpaces: totalSpaces - occupiedSpaces,
+      occupancyRate: totalSpaces > 0 ? (occupiedSpaces / totalSpaces) * 100 : 0
+    });
+    
+    setLastUpdate(new Date().toLocaleTimeString());
+    setLoading(false);
   };
 
   const filteredCameras = cameras.filter(camera =>
@@ -401,13 +381,20 @@ export const CamerasModule: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar esta cámara?')) return;
     
-    try {
-      await parkingService.deleteCamera(id);
-      await loadCameraData();
-    } catch (error) {
-      console.error('Error deleting camera:', error);
-      alert('Error al eliminar la cámara');
-    }
+    // Eliminar de la lista local (solo datos mock)
+    setCameras(prevCameras => prevCameras.filter(cam => cam.id !== id));
+    
+    // Recalcular estadísticas
+    const remainingCameras = cameras.filter(cam => cam.id !== id);
+    const totalSpaces = remainingCameras.reduce((sum, cam) => sum + (cam.totalSpaces || 12), 0);
+    const occupiedSpaces = remainingCameras.reduce((sum, cam) => sum + (cam.occupiedSpaces || 0), 0);
+    
+    setCameraStats({
+      totalSpaces,
+      occupiedSpaces,
+      emptySpaces: totalSpaces - occupiedSpaces,
+      occupancyRate: totalSpaces > 0 ? (occupiedSpaces / totalSpaces) * 100 : 0
+    });
   };
 
   const handleSave = async () => {
@@ -427,28 +414,45 @@ export const CamerasModule: React.FC = () => {
     }
 
     try {
+      // Actualizar solo datos locales (no intentar conectar al backend)
       if (editingCamera) {
-        // Editar cámara existente
-        await parkingService.updateCamera(editingCamera.id, {
-          name: formData.name.trim(),
-          description: formData.location.trim(),
-          videoFile: formData.videoFile.trim(),
-          streamUrl: formData.streamUrl.trim(),
-          isActive: formData.status === 'online'
-        });
-      } else {
-        // Agregar nueva cámara
-        await parkingService.createCamera({
-          name: formData.name.trim(),
-          description: formData.location.trim(),
-          videoFile: formData.videoFile.trim(),
-          streamUrl: formData.streamUrl.trim(),
-          isActive: formData.status === 'online'
-        });
+      // Editar cámara existente
+      setCameras(prevCameras => prevCameras.map(cam => 
+        cam.id === editingCamera.id 
+          ? { 
+              ...cam, 
+              name: formData.name.trim(), 
+              location: formData.location.trim(), 
+              status: formData.status,
+              isActive: formData.status === 'online',
+              stream: formData.streamUrl.trim() || cam.stream
+            }
+          : cam
+      ));
+    } else {
+      // Agregar nueva cámara (pero limitar a solo las dos cámaras permitidas)
+      if (cameras.length >= 2) {
+        alert('Solo se permiten 2 cámaras: cam-01 y cam-08');
+        return;
       }
-
-      // Recargar cámaras
-      await loadCameraData();
+      
+      const newCamera: Camera = {
+        id: formData.name.toLowerCase().includes('01') ? 'cam-01' : 
+            formData.name.toLowerCase().includes('08') ? 'cam-08' : 
+            `cam-${Date.now()}`,
+        name: formData.name.trim(),
+        location: formData.location.trim(),
+        status: formData.status,
+        isActive: formData.status === 'online',
+        lastActivity: 'Just now',
+        stream: formData.streamUrl.trim() || `http://localhost:4000/camera/video-feed?cameraId=${formData.name.toLowerCase().includes('01') ? 'cam-01' : 'cam-08'}`,
+        totalSpaces: 12,
+        emptySpaces: 12,
+        occupiedSpaces: 0,
+        occupancyRate: 0
+      };
+      setCameras(prevCameras => [...prevCameras, newCamera]);
+    }
 
       // Resetear formulario
       setFormData({ name: '', location: '', status: 'online', videoFile: '', streamUrl: '' });
@@ -487,10 +491,10 @@ export const CamerasModule: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold" style={{ color: COLORS.text.dark }}>
+          <h1 className="text-3xl font-bold" style={{ color: COLORS.light.textPrimary }}>
             {t('cameraManagement')}
           </h1>
-          <p className="text-lg mt-1" style={{ color: COLORS.text.light }}>
+          <p className="text-lg mt-1" style={{ color: COLORS.light.textSecondary }}>
             {loading 
               ? 'Cargando datos...' 
               : `Ocupación: ${cameraStats.occupiedSpaces || 0}/${cameraStats.totalSpaces || 12} espacios (${(cameraStats.occupancyRate || 0).toFixed(1)}%)`
@@ -503,8 +507,8 @@ export const CamerasModule: React.FC = () => {
             onClick={loadCameraData}
             disabled={loading}
             style={{ 
-              borderColor: COLORS.primary.medium,
-              color: COLORS.primary.medium 
+              borderColor: COLORS.light.accent,
+              color: COLORS.light.accent 
             }}
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -516,7 +520,7 @@ export const CamerasModule: React.FC = () => {
             variant="primary"
             onClick={handleOpenAddForm}
             style={{ 
-              background: COLORS.gradients.primary 
+              background: COLORS.light.accent 
             }}
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -532,10 +536,10 @@ export const CamerasModule: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
+              <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 Espacios Ocupados
               </p>
-              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
+              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.light.textPrimary }}>
                 {loading ? '...' : (cameraStats.occupiedSpaces || 0)}
               </p>
             </div>
@@ -553,10 +557,10 @@ export const CamerasModule: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
+              <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 Espacios Libres
               </p>
-              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
+              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.light.textPrimary }}>
                 {loading ? '...' : (cameraStats.emptySpaces || 12)}
               </p>
             </div>
@@ -574,16 +578,16 @@ export const CamerasModule: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
+              <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 Total Espacios
               </p>
-              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
+              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.light.textPrimary }}>
                 {loading ? '...' : (cameraStats.totalSpaces || 12)}
               </p>
             </div>
             <div 
               className="p-3 rounded-full"
-              style={{ backgroundColor: `${COLORS.primary.medium}20`, color: COLORS.primary.medium }}
+              style={{ backgroundColor: `${COLORS.light.accent}20`, color: COLORS.light.accent }}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -595,10 +599,10 @@ export const CamerasModule: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
+              <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 Tasa Ocupación
               </p>
-              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
+              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.light.textPrimary }}>
                 {loading ? '...' : `${(cameraStats.occupancyRate || 0).toFixed(1)}%`}
               </p>
             </div>
@@ -623,17 +627,17 @@ export const CamerasModule: React.FC = () => {
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span style={{ color: COLORS.text.light }}>
+              <span style={{ color: COLORS.light.textSecondary }}>
                 Datos en tiempo real - Última actualización: {lastUpdate}
               </span>
             </div>
             <div className="flex items-center space-x-4 text-xs">
               {cameraData.length > 0 && (
                 <>
-                  <span style={{ color: COLORS.text.light }}>
+                  <span style={{ color: COLORS.light.textSecondary }}>
                     Datos del video: {cameraData[cameraData.length - 1]?.time_video_sg}
                   </span>
-                  <span style={{ color: COLORS.text.light }}>
+                  <span style={{ color: COLORS.light.textSecondary }}>
                     Total registros: {cameraData.length}
                   </span>
                 </>
@@ -661,7 +665,7 @@ export const CamerasModule: React.FC = () => {
           </div>
           <select 
             className="px-4 py-2 border rounded-lg"
-            style={{ borderColor: COLORS.primary.light }}
+            style={{ borderColor: COLORS.light.border }}
           >
             <option value="">Todos los estados</option>
             <option value="online">{t('online')}</option>
@@ -686,13 +690,13 @@ export const CamerasModule: React.FC = () => {
 
       {filteredCameras.length === 0 && (
         <Card className="p-12 text-center">
-          <svg className="w-12 h-12 mx-auto mb-4" style={{ color: COLORS.text.light }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-12 h-12 mx-auto mb-4" style={{ color: COLORS.light.textSecondary }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
-          <h3 className="text-lg font-medium mb-2" style={{ color: COLORS.text.dark }}>
+          <h3 className="text-lg font-medium mb-2" style={{ color: COLORS.light.textPrimary }}>
             No se encontraron cámaras
           </h3>
-          <p style={{ color: COLORS.text.light }}>
+          <p style={{ color: COLORS.light.textSecondary }}>
             Intenta con otro término de búsqueda o agrega una nueva cámara.
           </p>
         </Card>
@@ -703,12 +707,12 @@ export const CamerasModule: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md mx-4">
             <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.text.dark }}>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.light.textPrimary }}>
                 {editingCamera ? t('editCamera') : t('addCamera')}
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.light.textPrimary }}>
                     Nombre de la Cámara *
                   </label>
                   <Input
@@ -720,7 +724,7 @@ export const CamerasModule: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.light.textPrimary }}>
                     Ubicación/Descripción *
                   </label>
                   <Input
@@ -732,7 +736,7 @@ export const CamerasModule: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.light.textPrimary }}>
                     Archivo de Video *
                   </label>
                   <Input
@@ -742,12 +746,12 @@ export const CamerasModule: React.FC = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, videoFile: e.target.value }))}
                     fullWidth
                   />
-                  <p className="text-xs mt-1" style={{ color: COLORS.text.light }}>
+                  <p className="text-xs mt-1" style={{ color: COLORS.light.textSecondary }}>
                     Debe estar en python-detection-service/
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.light.textPrimary }}>
                     URL del Stream (opcional)
                   </label>
                   <Input
@@ -759,12 +763,12 @@ export const CamerasModule: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.light.textPrimary }}>
                     Estado
                   </label>
                   <select 
                     className="w-full px-4 py-3 border rounded-xl"
-                    style={{ borderColor: COLORS.primary.light }}
+                    style={{ borderColor: COLORS.light.border }}
                     value={formData.status}
                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'online' | 'offline' }))}
                   >
@@ -784,7 +788,7 @@ export const CamerasModule: React.FC = () => {
                 <Button
                   variant="primary"
                   onClick={handleSave}
-                  style={{ background: COLORS.gradients.primary }}
+                  style={{ background: COLORS.light.accent }}
                   fullWidth
                 >
                   {t('save')}

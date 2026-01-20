@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
@@ -50,10 +50,23 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const { handleLogin, formErrors, authError, isLoading } = useAuthForm();
   const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: '',
     password: ''
   });
+
+  useEffect(() => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,18 +94,35 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2" style={{ color: COLORS.text.dark }}>
+        <h2 
+          className="text-3xl font-bold mb-2"
+          style={{ color: colors.textPrimary }}
+        >
           {t('welcomeBack')}
         </h2>
-        <p className="text-base" style={{ color: COLORS.text.light }}>
+        <p 
+          className="text-base"
+          style={{ color: colors.textSecondary }}
+        >
           {t('signInDescription')}
         </p>
       </div>
 
       {/* Error Alert */}
       {authError && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-          <p className="text-red-700 text-sm font-medium">{authError.message}</p>
+        <div 
+          className="mb-6 p-4 rounded-xl"
+          style={{ 
+            backgroundColor: `${COLORS.status.error}15`,
+            border: `1px solid ${COLORS.status.error}30`
+          }}
+        >
+          <p 
+            className="text-sm font-medium"
+            style={{ color: COLORS.status.error }}
+          >
+            {authError.message}
+          </p>
         </div>
       )}
 
@@ -122,11 +152,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           />
           <button
             type="button"
-            className="absolute right-4 top-3 transition-colors duration-200"
-            style={{ color: COLORS.text.light }}
+            className="absolute right-4 top-3 transition-colors duration-200 hover:scale-110"
+            style={{ color: colors.textSecondary }}
             onClick={() => setShowPassword(!showPassword)}
-            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.medium}
-            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.text.light}
+            onMouseEnter={(e) => e.currentTarget.style.color = colors.accent}
+            onMouseLeave={(e) => e.currentTarget.style.color = colors.textSecondary}
           >
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
@@ -134,22 +164,28 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
         {/* Remember me and Forgot password */}
         <div className="flex items-center justify-between">
-          <label className="flex items-center">
+          <label className="flex items-center cursor-pointer">
             <input 
               type="checkbox" 
-              className="w-4 h-4 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
-              style={{ accentColor: COLORS.primary.medium }}
+              className="w-4 h-4 rounded border-2 transition-colors duration-200"
+              style={{ 
+                accentColor: colors.accent,
+                borderColor: colors.border
+              }}
             />
-            <span className="ml-2 text-sm" style={{ color: COLORS.text.light }}>
+            <span 
+              className="ml-2 text-sm"
+              style={{ color: colors.textSecondary }}
+            >
               {t('rememberMe')}
             </span>
           </label>
           <button
             type="button"
-            className="text-sm font-medium transition-colors duration-200"
-            style={{ color: COLORS.primary.medium }}
-            onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.dark}
-            onMouseLeave={(e) => e.currentTarget.style.color = COLORS.primary.medium}
+            className="text-sm font-medium transition-colors duration-200 hover:underline"
+            style={{ color: colors.accent }}
+            onMouseEnter={(e) => e.currentTarget.style.color = colors.accentDark}
+            onMouseLeave={(e) => e.currentTarget.style.color = colors.accent}
           >
             {t('forgotPassword')}
           </button>
@@ -176,14 +212,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {/* Register Link */}
       {showRegisterLink && (
         <div className="mt-8 text-center">
-          <p style={{ color: COLORS.text.light }}>
+          <p style={{ color: colors.textSecondary }}>
             {t('noAccount')}{' '}
             <button
               onClick={onToggleMode}
-              className="font-semibold transition-colors duration-200"
-              style={{ color: COLORS.primary.medium }}
-              onMouseEnter={(e) => e.currentTarget.style.color = COLORS.primary.dark}
-              onMouseLeave={(e) => e.currentTarget.style.color = COLORS.primary.medium}
+              className="font-semibold transition-colors duration-200 hover:underline"
+              style={{ color: colors.accent }}
+              onMouseEnter={(e) => e.currentTarget.style.color = colors.accentDark}
+              onMouseLeave={(e) => e.currentTarget.style.color = colors.accent}
             >
               {t('signUp')}
             </button>
@@ -192,9 +228,37 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       )}
 
       {/* Demo Credentials */}
-      <div className="mt-6 p-4 rounded-xl" style={{ backgroundColor: `${COLORS.secondary.green}40` }}>
-        <p className="text-xs text-center font-medium" style={{ color: COLORS.text.light }}>
-          Demo: <span className="font-mono bg-white px-2 py-1 rounded">demo@parkintia.com</span> / <span className="font-mono bg-white px-2 py-1 rounded">demo123</span>
+      <div 
+        className="mt-6 p-4 rounded-xl"
+        style={{ 
+          backgroundColor: `${COLORS.status.success}15`,
+          border: `1px solid ${COLORS.status.success}30`
+        }}
+      >
+        <p 
+          className="text-xs text-center font-medium"
+          style={{ color: colors.textSecondary }}
+        >
+          Demo:{' '}
+          <span 
+            className="font-mono px-2 py-1 rounded"
+            style={{ 
+              backgroundColor: colors.surface,
+              color: colors.textPrimary
+            }}
+          >
+            demo@parkintia.com
+          </span>
+          {' / '}
+          <span 
+            className="font-mono px-2 py-1 rounded"
+            style={{ 
+              backgroundColor: colors.surface,
+              color: colors.textPrimary
+            }}
+          >
+            demo123
+          </span>
         </p>
       </div>
     </Card>

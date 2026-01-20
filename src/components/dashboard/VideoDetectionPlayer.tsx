@@ -20,8 +20,8 @@ export default function VideoDetectionPlayer({
   const [streamUrl, setStreamUrl] = useState<string>('');
 
   useEffect(() => {
-    // Configurar URL del stream desde el backend NestJS
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    // Configurar URL del stream desde el backend NestJS (puerto 4000)
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
     const url = `${backendUrl}/camera/video-feed?cameraId=${cameraId}`;
     setStreamUrl(url);
 
@@ -36,7 +36,7 @@ export default function VideoDetectionPlayer({
 
   const fetchStatus = async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const response = await fetch(`${backendUrl}/camera/parking-status-live?cameraId=${cameraId}`);
       
       if (!response.ok) throw new Error('Failed to fetch status');
@@ -51,8 +51,8 @@ export default function VideoDetectionPlayer({
 
   const controlVideo = async (action: string) => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${backendUrl}/camera/video-control`, {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${backendUrl}/api/video-control`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

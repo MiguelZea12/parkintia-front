@@ -103,21 +103,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Verificar si hay un token guardado al cargar la aplicación
   useEffect(() => {
+    let isMounted = true;
+    
     const initializeAuth = async () => {
       // Verificar si estamos en el cliente
       if (typeof window === 'undefined') return;
       
       try {
-        dispatch({ type: 'SET_LOADING', payload: true });
+        if (isMounted) dispatch({ type: 'SET_LOADING', payload: true });
         const token = localStorage.getItem('auth_token');
         
         if (token) {
           // Validar el token y obtener el usuario
           const user = await authService.validateToken(token);
-          dispatch({ type: 'SET_USER', payload: user });
+          if (isMounted) dispatch({ type: 'SET_USER', payload: user });
         } else {
           // No hay token, asegurarse de que el estado esté limpio
-          dispatch({ type: 'SET_USER', payload: null });
+          if (isMounted) dispatch({ type: 'SET_USER', payload: null });
         }
       } catch (error) {
         // Token inválido, remover del localStorage
@@ -125,13 +127,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.removeItem('auth_token');
           localStorage.removeItem('refresh_token');
         }
-        dispatch({ type: 'SET_USER', payload: null });
+        if (isMounted) dispatch({ type: 'SET_USER', payload: null });
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        if (isMounted) dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
 
     initializeAuth();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []); // Solo ejecutar una vez al montar el componente
 
   const login = async (credentials: LoginCredentials): Promise<void> => {

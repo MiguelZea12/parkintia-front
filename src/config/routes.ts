@@ -133,7 +133,7 @@ export const RouteUtils = {
    * Obtiene la URL completa de la API
    */
   getApiUrl: (endpoint: string): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
     return `${baseUrl}${endpoint}`;
   }
 };

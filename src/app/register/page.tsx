@@ -1,42 +1,68 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { RegisterForm } from '@/components/auth/RegisterForm';
 import { useAuthRoute } from '@/hooks/useAuthRedirect';
 import { useLanguage } from '@/context/LanguageContext';
 import { PUBLIC_ROUTES, PROTECTED_ROUTES } from '@/config/routes';
 import { COLORS } from '@/config/colors';
+import { ParkingCircle, MapPin, Clock, DollarSign } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { t } = useLanguage();
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  useEffect(() => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
   
   // Redirigir si ya está autenticado
-  const { isLoading } = useAuthRoute(PROTECTED_ROUTES.DASHBOARD);
+  const { isLoading, isAuthenticated, shouldRender } = useAuthRoute(PROTECTED_ROUTES.DASHBOARD);
 
   const handleRegisterSuccess = () => {
-    router.push(PROTECTED_ROUTES.DASHBOARD);
+    // useAuthRoute manejará la redirección automáticamente
   };
 
   const goToLogin = () => {
     router.push(PUBLIC_ROUTES.LOGIN);
   };
 
-  if (isLoading) {
+  // Mostrar loader si está verificando autenticación o ya está autenticado
+  if (isLoading || isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.gradients.primary }}>
+      <div 
+        className="min-h-screen flex items-center justify-center transition-colors duration-300"
+        style={{ backgroundColor: colors.primary }}
+      >
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
       </div>
     );
   }
 
+  // No renderizar si no debería mostrarse
+  if (!shouldRender) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - Gradient Background with Branding */}
+    <div 
+      className="min-h-screen flex transition-colors duration-300"
+      style={{ backgroundColor: colors.background }}
+    >
+      {/* Left side - Branding */}
       <div 
         className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden"
-        style={{ background: COLORS.gradients.primary }}
+        style={{ backgroundColor: colors.primary }}
       >
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-10">
@@ -48,14 +74,17 @@ export default function RegisterPage() {
           {/* Logo/Brand */}
           <div className="mb-8">
             <div 
-              className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center text-2xl font-bold"
-              style={{ backgroundColor: COLORS.secondary.white, color: COLORS.primary.dark }}
+              className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center shadow-xl"
+              style={{ backgroundColor: colors.accent }}
             >
-              P
+              <ParkingCircle className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-4xl font-bold text-white mb-4">
               PARKINTIA
             </h1>
+            <p className="text-lg text-white opacity-80">
+              Smart Parking System
+            </p>
           </div>
           
           {/* Welcome Message */}
@@ -71,16 +100,16 @@ export default function RegisterPage() {
           {/* Features */}
           <div className="mt-8 space-y-4 text-white/90">
             <div className="flex items-center justify-center space-x-3">
-              <div className="w-2 h-2 bg-white rounded-full"></div>
-              <span>Find parking spots instantly</span>
+              <MapPin className="w-5 h-5" />
+              <span>Encuentra espacios al instante</span>
             </div>
             <div className="flex items-center justify-center space-x-3">
-              <div className="w-2 h-2 bg-white rounded-full"></div>
-              <span>Reserve in advance</span>
+              <Clock className="w-5 h-5" />
+              <span>Reserva con anticipación</span>
             </div>
             <div className="flex items-center justify-center space-x-3">
-              <div className="w-2 h-2 bg-white rounded-full"></div>
-              <span>Save time and money</span>
+              <DollarSign className="w-5 h-5" />
+              <span>Ahorra tiempo y dinero</span>
             </div>
           </div>
 
@@ -94,19 +123,31 @@ export default function RegisterPage() {
       </div>
 
       {/* Right side - Register Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8" style={{ backgroundColor: '#F8FAFC' }}>
+      <div 
+        className="w-full lg:w-1/2 flex items-center justify-center p-8 transition-colors duration-300"
+        style={{ backgroundColor: colors.background }}
+      >
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
             <div 
-              className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center text-xl font-bold"
-              style={{ background: COLORS.gradients.primary, color: COLORS.secondary.white }}
+              className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center shadow-lg"
+              style={{ backgroundColor: colors.accent }}
             >
-              P
+              <ParkingCircle className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold" style={{ color: COLORS.text.dark }}>
+            <h1 
+              className="text-2xl font-bold mb-2"
+              style={{ color: colors.textPrimary }}
+            >
               PARKINTIA
             </h1>
+            <p 
+              className="text-sm"
+              style={{ color: colors.textSecondary }}
+            >
+              Smart Parking System
+            </p>
           </div>
 
           {/* Register Form */}
@@ -117,7 +158,10 @@ export default function RegisterPage() {
 
           {/* Footer */}
           <div className="mt-8 text-center">
-            <p className="text-xs" style={{ color: COLORS.text.light }}>
+            <p 
+              className="text-xs"
+              style={{ color: colors.textSecondary }}
+            >
               {t('copyright')}
             </p>
           </div>

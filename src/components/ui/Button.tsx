@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ButtonProps } from '@/types/ui';
 import { LoadingSpinner } from './LoadingSpinner';
 import { COLORS } from '@/config/colors';
@@ -18,13 +18,39 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   ...props
 }) => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+
+    // Listen for theme changes
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
+
   const baseClasses = 'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95';
   
   const variantClasses = {
     primary: 'text-white shadow-lg hover:shadow-xl',
     secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500',
-    outline: 'border-2 text-blue-600 hover:bg-blue-600 hover:text-white focus:ring-blue-500',
-    ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-500'
+    outline: 'border-2 hover:bg-opacity-10 focus:ring-2',
+    ghost: 'hover:bg-opacity-10 focus:ring-2'
   };
 
   const sizeClasses = {
@@ -35,22 +61,30 @@ export const Button: React.FC<ButtonProps> = ({
 
   const widthClass = fullWidth ? 'w-full' : '';
 
-  // Estilos personalizados para el botón primario con gradiente
+  // Estilos personalizados para el botón primario
   const primaryStyle = variant === 'primary' ? {
-    background: COLORS.gradients.primary,
+    backgroundColor: colors.accent,
     border: 'none',
-    color: COLORS.text.white,
-    boxShadow: '0 8px 25px rgba(30, 103, 211, 0.3)',
+    color: '#FFFFFF',
+    boxShadow: `0 8px 25px ${colors.accent}40`,
     ...style
   } : style;
 
-  // Estilos para botón outline con borde de gradiente
+  // Estilos para botón outline
   const outlineStyle = variant === 'outline' ? {
     background: 'transparent',
-    border: `2px solid ${COLORS.primary.medium}`,
-    color: COLORS.primary.dark,
+    border: `2px solid ${colors.accent}`,
+    color: colors.accent,
     ...style
   } : primaryStyle;
+
+  // Estilos para botón ghost
+  const ghostStyle = variant === 'ghost' ? {
+    background: 'transparent',
+    border: 'none',
+    color: colors.textPrimary,
+    ...style
+  } : outlineStyle;
 
   const combinedClassName = [
     baseClasses,
@@ -63,21 +97,31 @@ export const Button: React.FC<ButtonProps> = ({
   const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (variant === 'primary' && !disabled && !isLoading) {
       e.currentTarget.style.transform = 'translateY(-2px)';
-      e.currentTarget.style.boxShadow = '0 12px 35px rgba(30, 103, 211, 0.4)';
+      e.currentTarget.style.boxShadow = `0 12px 35px ${colors.accent}50`;
+      e.currentTarget.style.backgroundColor = colors.accentLight;
+    } else if (variant === 'outline' && !disabled && !isLoading) {
+      e.currentTarget.style.backgroundColor = `${colors.accent}15`;
+    } else if (variant === 'ghost' && !disabled && !isLoading) {
+      e.currentTarget.style.backgroundColor = `${colors.accent}10`;
     }
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (variant === 'primary' && !disabled && !isLoading) {
       e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = '0 8px 25px rgba(30, 103, 211, 0.3)';
+      e.currentTarget.style.boxShadow = `0 8px 25px ${colors.accent}40`;
+      e.currentTarget.style.backgroundColor = colors.accent;
+    } else if (variant === 'outline' && !disabled && !isLoading) {
+      e.currentTarget.style.backgroundColor = 'transparent';
+    } else if (variant === 'ghost' && !disabled && !isLoading) {
+      e.currentTarget.style.backgroundColor = 'transparent';
     }
   };
 
   return (
     <button
       className={combinedClassName}
-      style={outlineStyle}
+      style={ghostStyle}
       disabled={disabled || isLoading}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

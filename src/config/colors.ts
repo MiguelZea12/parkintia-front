@@ -1,53 +1,89 @@
 /**
- * Paleta de colores de Parkintia - Estilo BLUEBACK
+ * Paleta de colores de Parkintia
+ * Sistema de diseño sin degradados
+ * Soporte para Light y Dark mode
  */
 
 export const COLORS = {
-  // Colores Primarios (degradado azul)
-  primary: {
-    light: '#5EB8F7',     // Azul Claro
-    medium: '#2D8DF6',    // Azul Medio  
-    dark: '#1867D3',      // Azul Oscuro
+  // ============================================
+  // LIGHT MODE
+  // ============================================
+  light: {
+    // Colores Principales
+    primary: '#0A2540',        // Azul petróleo
+    primaryLight: '#0D3A5C',   // Para hover states
+    primaryDark: '#081A2E',    // Para estados activos
+    
+    // Accent (Teal tecnológico)
+    accent: '#14B8A6',
+    accentLight: '#2DD4BF',
+    accentDark: '#0D9488',
+    
+    // Fondos
+    background: '#F8FAFC',
+    surface: '#FFFFFF',
+    
+    // Textos
+    textPrimary: '#0F172A',
+    textSecondary: '#64748B',
+    
+    // Bordes
+    border: '#E2E8F0',
   },
   
-  // Colores Secundarios
-  secondary: {
-    green: '#C7E9D1',     // Verde Pastel (inputs)
-    white: '#FFFFFF',     // Blanco (fondo de formularios)
-    grayLight: '#A8A8A8', // Gris Claro (texto pequeño)
+  // ============================================
+  // DARK MODE
+  // ============================================
+  dark: {
+    // Colores Principales
+    primary: '#38BDF8',        // Azul claro para dark mode
+    primaryLight: '#7DD3FC',
+    primaryDark: '#0EA5E9',
+    
+    // Accent (mismo que light)
+    accent: '#14B8A6',
+    accentLight: '#2DD4BF',
+    accentDark: '#0D9488',
+    
+    // Fondos
+    background: '#020617',
+    surface: '#0F172A',
+    
+    // Textos
+    textPrimary: '#E5E7EB',
+    textSecondary: '#9CA3AF',
+    
+    // Bordes
+    border: '#1E293B',
   },
   
-  // Colores de Texto
-  text: {
-    dark: '#2D2D2D',      // Texto Oscuro (títulos y campos)
-    light: '#A8A8A8',    // Texto claro
-    white: '#FFFFFF',     // Texto blanco
+  // ============================================
+  // COLORES DE ESTADO (compartidos)
+  // ============================================
+  status: {
+    success: '#22C55E',
+    warning: '#FACC15',
+    error: '#EF4444',
+    info: '#3B82F6',
   },
   
-  // Gradientes
-  gradients: {
-    primary: 'linear-gradient(135deg, #5EB8F7 0%, #2D8DF6 50%, #1867D3 100%)',
-    primaryReverse: 'linear-gradient(315deg, #5EB8F7 0%, #2D8DF6 50%, #1867D3 100%)',
-    light: 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)',
-  }
+  // ============================================
+  // COLORES SEMÁNTICOS PARA PARKING
+  // ============================================
+  parking: {
+    available: '#22C55E',      // Verde - Espacio disponible
+    occupied: '#EF4444',       // Rojo - Espacio ocupado
+    reserved: '#FACC15',       // Amarillo - Espacio reservado
+    disabled: '#64748B',       // Gris - Espacio deshabilitado
+  },
 } as const;
 
-// Utilidades CSS personalizadas para Tailwind
-export const CUSTOM_STYLES = {
-  gradientPrimary: {
-    background: COLORS.gradients.primary,
-  },
-  gradientPrimaryReverse: {
-    background: COLORS.gradients.primaryReverse,
-  },
-  gradientLight: {
-    background: COLORS.gradients.light,
-  },
-  shadowCustom: {
-    boxShadow: '0 20px 40px rgba(30, 103, 211, 0.1), 0 10px 20px rgba(30, 103, 211, 0.05)',
-  },
-  inputFocus: {
-    borderColor: COLORS.primary.medium,
-    boxShadow: `0 0 0 3px ${COLORS.primary.light}20`,
-  }
-} as const;
+// CSS Variables helper
+export const getCSSVar = (varName: string): string => {
+  return `var(--${varName})`;
+};
+
+// Hook helper para obtener colores según el tema
+export const getThemeColor = (isDark: boolean, colorKey: keyof typeof COLORS.light): string => {
+  return isDark ? COLORS.dark[colorKey] : COLORS.light[colorKey];
+};

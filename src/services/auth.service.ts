@@ -2,7 +2,7 @@ import { LoginCredentials, RegisterCredentials, AuthResponse, User, UserRole } f
 import { API_ROUTES, RouteUtils } from '@/config/routes';
 
 // Configuración base de la API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 class AuthService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

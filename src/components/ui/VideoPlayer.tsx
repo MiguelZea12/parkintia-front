@@ -19,11 +19,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (isOnline) {
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    if (isOnline && cameraId) {
+      // Usar la URL del backend NestJS (puerto 4000) que hace proxy al servicio Python
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const url = `${backendUrl}/camera/video-feed?cameraId=${cameraId}&t=${Date.now()}`;
       setStreamUrl(url);
       setError(false);
+    } else {
+      setStreamUrl('');
     }
   }, [isOnline, cameraId]);
 
@@ -49,6 +52,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           </svg>
           <p className="text-xs">Error al cargar video</p>
           <p className="text-xs text-gray-400 mt-1">Verifica que el servicio Python esté corriendo</p>
+        </div>
+      </div>
+    );
+  }
+
+  // No renderizar si no hay URL válida
+  if (!streamUrl || streamUrl.trim() === '') {
+    return (
+      <div className={`w-full h-full flex items-center justify-center bg-gray-800 ${className}`}>
+        <div className="text-center text-white p-4">
+          <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <p className="text-xs text-gray-400">Esperando stream...</p>
         </div>
       </div>
     );

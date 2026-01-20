@@ -30,7 +30,8 @@ const VideoModal: React.FC<VideoModalProps> = ({
 
   useEffect(() => {
     if (isOpen && isOnline) {
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      // Usar la URL del backend NestJS (puerto 4000) que hace proxy al servicio Python
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const url = `${backendUrl}/camera/video-feed?cameraId=${cameraId}&t=${Date.now()}`;
       setStreamUrl(url);
 

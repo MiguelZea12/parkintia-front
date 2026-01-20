@@ -15,22 +15,28 @@ export default function AuthPage() {
   const { t } = useLanguage();
   
   // Redirigir si ya está autenticado
-  const { isLoading } = useAuthRoute(PROTECTED_ROUTES.DASHBOARD);
+  const { isLoading, isAuthenticated, shouldRender } = useAuthRoute(PROTECTED_ROUTES.DASHBOARD);
 
   const handleAuthSuccess = () => {
-    router.push(PROTECTED_ROUTES.DASHBOARD);
+    // useAuthRoute manejará la redirección automáticamente
   };
 
   const toggleMode = () => {
     setIsLoginMode(!isLoginMode);
   };
 
-  if (isLoading) {
+  // Mostrar loader si está verificando autenticación o ya está autenticado
+  if (isLoading || isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.gradients.primary }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.light.accent }}>
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
       </div>
     );
+  }
+
+  // No renderizar si no debería mostrarse
+  if (!shouldRender) {
+    return null;
   }
 
   return (
@@ -38,7 +44,7 @@ export default function AuthPage() {
       {/* Left side - Gradient Background with Branding */}
       <div 
         className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden"
-        style={{ background: COLORS.gradients.primary }}
+        style={{ background: COLORS.light.accent }}
       >
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-10">
@@ -51,7 +57,7 @@ export default function AuthPage() {
           <div className="mb-8">
             <div 
               className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center text-2xl font-bold"
-              style={{ backgroundColor: COLORS.secondary.white, color: COLORS.primary.dark }}
+              style={{ backgroundColor: COLORS.light.surface, color: COLORS.light.primary }}
             >
               P
             </div>
@@ -109,11 +115,11 @@ export default function AuthPage() {
           <div className="lg:hidden text-center mb-8">
             <div 
               className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center text-xl font-bold"
-              style={{ background: COLORS.gradients.primary, color: COLORS.secondary.white }}
+              style={{ background: COLORS.light.accent, color: COLORS.light.surface }}
             >
               P
             </div>
-            <h1 className="text-2xl font-bold" style={{ color: COLORS.text.dark }}>
+            <h1 className="text-2xl font-bold" style={{ color: COLORS.light.textPrimary }}>
               PARKINTIA
             </h1>
           </div>
@@ -135,7 +141,7 @@ export default function AuthPage() {
 
           {/* Footer */}
           <div className="mt-8 text-center">
-            <p className="text-xs" style={{ color: COLORS.text.light }}>
+            <p className="text-xs" style={{ color: COLORS.light.textSecondary }}>
               {t('copyright')}
             </p>
           </div>

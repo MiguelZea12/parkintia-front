@@ -27,7 +27,7 @@ const mockUsers: User[] = [
     role: 'admin',
     status: 'active',
     lastLogin: '2025-01-18 10:30',
-    createdAt: '2024-06-15',
+    createdAt: '2026-06-15',
     phone: '+1 234 567 8900'
   },
   {
@@ -37,7 +37,7 @@ const mockUsers: User[] = [
     role: 'operator',
     status: 'active',
     lastLogin: '2025-01-18 09:45',
-    createdAt: '2024-08-22',
+    createdAt: '2026-08-22',
     phone: '+1 234 567 8901'
   },
   {
@@ -47,7 +47,7 @@ const mockUsers: User[] = [
     role: 'viewer',
     status: 'inactive',
     lastLogin: '2025-01-16 14:20',
-    createdAt: '2024-11-10',
+    createdAt: '2026-11-10',
     phone: '+1 234 567 8902'
   },
   {
@@ -75,7 +75,7 @@ const UserCard: React.FC<{
       case 'admin': return '#DC2626';
       case 'operator': return '#2563EB';
       case 'viewer': return '#059669';
-      default: return COLORS.text.light;
+      default: return COLORS.light.textSecondary;
     }
   };
 
@@ -84,7 +84,7 @@ const UserCard: React.FC<{
       case 'active': return '#10B981';
       case 'inactive': return '#6B7280';
       case 'pending': return '#F59E0B';
-      default: return COLORS.text.light;
+      default: return COLORS.light.textSecondary;
     }
   };
 
@@ -112,19 +112,19 @@ const UserCard: React.FC<{
         <div className="flex items-center space-x-3">
           <div 
             className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"
-            style={{ backgroundColor: COLORS.primary.medium }}
+            style={{ backgroundColor: COLORS.light.accent }}
           >
             {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
           </div>
           <div>
-            <h3 className="font-semibold text-lg" style={{ color: COLORS.text.dark }}>
+            <h3 className="font-semibold text-lg" style={{ color: COLORS.light.textPrimary }}>
               {user.name}
             </h3>
-            <p className="text-sm" style={{ color: COLORS.text.light }}>
+            <p className="text-sm" style={{ color: COLORS.light.textSecondary }}>
               {user.email}
             </p>
             {user.phone && (
-              <p className="text-sm" style={{ color: COLORS.text.light }}>
+              <p className="text-sm" style={{ color: COLORS.light.textSecondary }}>
                 {user.phone}
               </p>
             )}
@@ -134,7 +134,7 @@ const UserCard: React.FC<{
           <button
             onClick={() => onEdit(user)}
             className="p-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors"
-            style={{ color: COLORS.text.light }}
+            style={{ color: COLORS.light.textSecondary }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -143,7 +143,7 @@ const UserCard: React.FC<{
           <button
             onClick={() => onToggleStatus(user.id)}
             className="p-2 rounded-lg hover:bg-yellow-50 hover:text-yellow-600 transition-colors"
-            style={{ color: COLORS.text.light }}
+            style={{ color: COLORS.light.textSecondary }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
@@ -152,7 +152,7 @@ const UserCard: React.FC<{
           <button
             onClick={() => onDelete(user.id)}
             className="p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
-            style={{ color: COLORS.text.light }}
+            style={{ color: COLORS.light.textSecondary }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -163,7 +163,7 @@ const UserCard: React.FC<{
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm" style={{ color: COLORS.text.light }}>
+          <span className="text-sm" style={{ color: COLORS.light.textSecondary }}>
             {t('role')}:
           </span>
           <span 
@@ -175,7 +175,7 @@ const UserCard: React.FC<{
         </div>
         
         <div className="flex items-center justify-between">
-          <span className="text-sm" style={{ color: COLORS.text.light }}>
+          <span className="text-sm" style={{ color: COLORS.light.textSecondary }}>
             {t('status')}:
           </span>
           <div className="flex items-center space-x-2">
@@ -193,19 +193,19 @@ const UserCard: React.FC<{
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm" style={{ color: COLORS.text.light }}>
+          <span className="text-sm" style={{ color: COLORS.light.textSecondary }}>
             {t('lastLogin')}:
           </span>
-          <span className="text-sm font-medium" style={{ color: COLORS.text.dark }}>
+          <span className="text-sm font-medium" style={{ color: COLORS.light.textPrimary }}>
             {user.lastLogin}
           </span>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm" style={{ color: COLORS.text.light }}>
+          <span className="text-sm" style={{ color: COLORS.light.textSecondary }}>
             {t('member')} desde:
           </span>
-          <span className="text-sm font-medium" style={{ color: COLORS.text.dark }}>
+          <span className="text-sm font-medium" style={{ color: COLORS.light.textPrimary }}>
             {new Date(user.createdAt).toLocaleDateString()}
           </span>
         </div>
@@ -276,10 +276,10 @@ export const UsersModule: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold" style={{ color: COLORS.text.dark }}>
+          <h1 className="text-3xl font-bold" style={{ color: COLORS.light.textPrimary }}>
             {t('userManagement')}
           </h1>
-          <p className="text-lg mt-1" style={{ color: COLORS.text.light }}>
+          <p className="text-lg mt-1" style={{ color: COLORS.light.textSecondary }}>
             {activeUsers} usuarios activos • {pendingUsers} pendientes
           </p>
         </div>
@@ -290,7 +290,7 @@ export const UsersModule: React.FC = () => {
             setShowUserForm(true);
           }}
           style={{ 
-            background: COLORS.gradients.primary 
+            background: COLORS.light.accent 
           }}
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -313,10 +313,10 @@ export const UsersModule: React.FC = () => {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
+              <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 {t('totalUsers')}
               </p>
-              <p className="text-2xl font-bold" style={{ color: COLORS.text.dark }}>
+              <p className="text-2xl font-bold" style={{ color: COLORS.light.textPrimary }}>
                 {users.length}
               </p>
             </div>
@@ -334,10 +334,10 @@ export const UsersModule: React.FC = () => {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
+              <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 {t('activeUsers')}
               </p>
-              <p className="text-2xl font-bold" style={{ color: COLORS.text.dark }}>
+              <p className="text-2xl font-bold" style={{ color: COLORS.light.textPrimary }}>
                 {activeUsers}
               </p>
             </div>
@@ -355,10 +355,10 @@ export const UsersModule: React.FC = () => {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
+              <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 {t('pendingUsers')}
               </p>
-              <p className="text-2xl font-bold" style={{ color: COLORS.text.dark }}>
+              <p className="text-2xl font-bold" style={{ color: COLORS.light.textPrimary }}>
                 {pendingUsers}
               </p>
             </div>
@@ -376,10 +376,10 @@ export const UsersModule: React.FC = () => {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
+              <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 Administradores
               </p>
-              <p className="text-2xl font-bold" style={{ color: COLORS.text.dark }}>
+              <p className="text-2xl font-bold" style={{ color: COLORS.light.textPrimary }}>
                 {users.filter(u => u.role === 'admin').length}
               </p>
             </div>
@@ -401,7 +401,7 @@ export const UsersModule: React.FC = () => {
           </div>
           <select 
             className="px-4 py-3 border rounded-xl"
-            style={{ borderColor: COLORS.primary.light }}
+            style={{ borderColor: COLORS.light.border }}
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
           >
@@ -412,7 +412,7 @@ export const UsersModule: React.FC = () => {
           </select>
           <select 
             className="px-4 py-3 border rounded-xl"
-            style={{ borderColor: COLORS.primary.light }}
+            style={{ borderColor: COLORS.light.border }}
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
@@ -441,16 +441,16 @@ export const UsersModule: React.FC = () => {
         <Card className="p-12 text-center">
           <div 
             className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: `${COLORS.primary.light}20`, color: COLORS.primary.light }}
+            style={{ backgroundColor: `${COLORS.light.border}20`, color: COLORS.light.border }}
           >
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
             </svg>
           </div>
-          <p className="text-lg font-medium mb-2" style={{ color: COLORS.text.dark }}>
+          <p className="text-lg font-medium mb-2" style={{ color: COLORS.light.textPrimary }}>
             No se encontraron usuarios
           </p>
-          <p style={{ color: COLORS.text.light }}>
+          <p style={{ color: COLORS.light.textSecondary }}>
             Intenta ajustar los filtros de búsqueda
           </p>
         </Card>
@@ -461,7 +461,7 @@ export const UsersModule: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.text.dark }}>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.light.textPrimary }}>
                 {editingUser ? t('editUser') : t('addUser')}
               </h3>
               <form 
@@ -500,13 +500,13 @@ export const UsersModule: React.FC = () => {
                   fullWidth
                 />
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.light.textPrimary }}>
                     {t('role')}
                   </label>
                   <select 
                     name="role"
                     className="w-full px-4 py-3 border rounded-xl"
-                    style={{ borderColor: COLORS.primary.light }}
+                    style={{ borderColor: COLORS.light.border }}
                     defaultValue={editingUser?.role || 'viewer'}
                     required
                   >
@@ -517,13 +517,13 @@ export const UsersModule: React.FC = () => {
                 </div>
                 {editingUser && (
                   <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: COLORS.text.dark }}>
+                    <label className="block text-sm font-medium mb-2" style={{ color: COLORS.light.textPrimary }}>
                       {t('status')}
                     </label>
                     <select 
                       name="status"
                       className="w-full px-4 py-3 border rounded-xl"
-                      style={{ borderColor: COLORS.primary.light }}
+                      style={{ borderColor: COLORS.light.border }}
                       defaultValue={editingUser?.status || 'pending'}
                     >
                       <option value="pending">{t('pending')}</option>
@@ -548,7 +548,7 @@ export const UsersModule: React.FC = () => {
                   <Button
                     type="submit"
                     variant="primary"
-                    style={{ background: COLORS.gradients.primary }}
+                    style={{ background: COLORS.light.accent }}
                     fullWidth
                   >
                     {editingUser ? t('saveChanges') : t('addUser')}

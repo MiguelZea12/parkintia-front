@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { Card } from '@/components/ui/Card';
 import { COLORS } from '@/config/colors';
@@ -47,16 +47,42 @@ interface StatsCardProps {
   color?: string;
 }
 
-const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, trend, color = COLORS.primary.medium }) => (
-  <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm font-medium" style={{ color: COLORS.text.light }}>
-          {title}
-        </p>
-        <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
-          {value}
-        </p>
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, trend, color }) => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+    }
+
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
+  const defaultColor = color || colors.accent;
+
+  return (
+    <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+            {title}
+          </p>
+          <p className="text-3xl font-bold mt-2" style={{ color: colors.textPrimary }}>
+            {value}
+          </p>
         {trend && (
           <div className={`flex items-center mt-2 text-sm ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
             {trend.isPositive ? (
@@ -70,13 +96,14 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, trend, color 
       </div>
       <div 
         className="p-3 rounded-full"
-        style={{ backgroundColor: `${color}20`, color }}
+        style={{ backgroundColor: `${defaultColor}20`, color: defaultColor }}
       >
         {icon}
       </div>
     </div>
   </Card>
-);
+  );
+};
 
 const ParkingIcon = () => <Building2 className="w-6 h-6" />;
 
@@ -89,6 +116,30 @@ const ActivityIcon = () => <Activity className="w-6 h-6" />;
 export const OverviewModule: React.FC = () => {
   const { t } = useLanguage();
   const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'yesterday' | 'week'>('today');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const colors = isDarkMode ? COLORS.dark : COLORS.light;
 
   // Datos dinámicos según el período seleccionado
   const getChartData = () => {
@@ -144,8 +195,14 @@ export const OverviewModule: React.FC = () => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-100 backdrop-blur-sm">
-          <p className="text-sm font-medium" style={{ color: COLORS.text.dark }}>
+        <div 
+          className="p-3 rounded-xl shadow-lg border backdrop-blur-sm"
+          style={{ 
+            backgroundColor: colors.surface,
+            borderColor: colors.border
+          }}
+        >
+          <p className="text-sm font-medium" style={{ color: colors.textPrimary }}>
             {`${label} - ${getPeriodLabel()}`}
           </p>
           <p className="text-sm" style={{ color: getGradientColor() }}>
@@ -206,8 +263,8 @@ export const OverviewModule: React.FC = () => {
 
   const getGradientColor = () => {
     switch (selectedPeriod) {
-      case 'today': return COLORS.primary.medium;
-      case 'yesterday': return '#10B981';
+      case 'today': return colors.accent;
+      case 'yesterday': return COLORS.status.success;
       case 'week': return '#8B5CF6';
     }
   };
@@ -218,7 +275,7 @@ export const OverviewModule: React.FC = () => {
       value: '250',
       icon: <ParkingIcon />,
       trend: { value: '+5%', isPositive: true },
-      color: COLORS.primary.medium
+      color: colors.accent
     },
     {
       title: t('occupiedSpaces'),
@@ -248,21 +305,22 @@ export const OverviewModule: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold" style={{ color: COLORS.text.dark }}>
+          <h1 className="text-3xl font-bold" style={{ color: colors.textPrimary }}>
             {t('overview')}
           </h1>
-          <p className="text-lg mt-1" style={{ color: COLORS.text.light }}>
+          <p className="text-lg mt-1" style={{ color: colors.textSecondary }}>
             {t('welcomeTo')} PARKINTIA
           </p>
         </div>
         <button
-          className="flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors"
+          className="flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors cursor-pointer"
           style={{ 
-            borderColor: COLORS.primary.light,
-            color: COLORS.primary.medium 
+            borderColor: colors.border,
+            color: colors.accent,
+            backgroundColor: 'transparent'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = COLORS.primary.light + '20';
+            e.currentTarget.style.backgroundColor = `${colors.accent}15`;
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'transparent';
@@ -293,10 +351,10 @@ export const OverviewModule: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-semibold" style={{ color: COLORS.text.dark }}>
+              <h3 className="text-lg font-semibold" style={{ color: colors.textPrimary }}>
                 Ocupación por Horas
               </h3>
-              <p className="text-sm mt-1" style={{ color: COLORS.text.light }}>
+              <p className="text-sm mt-1" style={{ color: colors.textSecondary }}>
                 {getPeriodLabel()} - Patrón de ocupación
               </p>
             </div>
@@ -304,10 +362,11 @@ export const OverviewModule: React.FC = () => {
               <select 
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value as 'today' | 'yesterday' | 'week')}
-                className="px-4 py-2 pl-10 border rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 appearance-none bg-white"
+                className="px-4 py-2 pl-10 border rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 appearance-none"
                 style={{ 
-                  borderColor: COLORS.primary.light,
-                  color: COLORS.text.dark,
+                  borderColor: colors.border,
+                  color: colors.textPrimary,
+                  backgroundColor: colors.surface,
                   minWidth: '160px'
                 }}
                 onFocus={(e) => {
@@ -315,7 +374,7 @@ export const OverviewModule: React.FC = () => {
                   e.target.style.boxShadow = `0 0 0 3px ${getGradientColor()}20`;
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = COLORS.primary.light;
+                  e.target.style.borderColor = colors.border;
                   e.target.style.boxShadow = 'none';
                 }}
               >
@@ -326,20 +385,20 @@ export const OverviewModule: React.FC = () => {
               
               {/* Icon overlay */}
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                {selectedPeriod === 'today' && <Calendar className="w-4 h-4" style={{ color: COLORS.text.light }} />}
-                {selectedPeriod === 'yesterday' && <History className="w-4 h-4" style={{ color: COLORS.text.light }} />}
-                {selectedPeriod === 'week' && <BarChart3 className="w-4 h-4" style={{ color: COLORS.text.light }} />}
+                {selectedPeriod === 'today' && <Calendar className="w-4 h-4" style={{ color: colors.textSecondary }} />}
+                {selectedPeriod === 'yesterday' && <History className="w-4 h-4" style={{ color: colors.textSecondary }} />}
+                {selectedPeriod === 'week' && <BarChart3 className="w-4 h-4" style={{ color: colors.textSecondary }} />}
               </div>
               
               {/* Dropdown arrow */}
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <svg className="w-4 h-4" style={{ color: COLORS.text.light }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" style={{ color: colors.textSecondary }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
             </div>
           </div>
-          <div className="h-80 relative overflow-hidden rounded-xl" style={{ backgroundColor: '#fafafa' }}>
+          <div className="h-80 relative overflow-hidden rounded-xl" style={{ backgroundColor: colors.background }}>
             {/* Recharts Professional Chart */}
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
@@ -363,22 +422,22 @@ export const OverviewModule: React.FC = () => {
                   dataKey="hour" 
                   tick={{ 
                     fontSize: 11, 
-                    fill: COLORS.text.light,
+                    fill: colors.textSecondary,
                     fontWeight: 500 
                   }}
                   tickLine={false}
-                  axisLine={{ stroke: '#e2e8f0', strokeWidth: 1 }}
+                  axisLine={{ stroke: colors.border, strokeWidth: 1 }}
                 />
                 
                 <YAxis 
                   domain={[0, 100]}
                   tick={{ 
                     fontSize: 11, 
-                    fill: COLORS.text.light,
+                    fill: colors.textSecondary,
                     fontWeight: 500 
                   }}
                   tickLine={false}
-                  axisLine={{ stroke: '#e2e8f0', strokeWidth: 1 }}
+                  axisLine={{ stroke: colors.border, strokeWidth: 1 }}
                   tickFormatter={(value: any) => `${value}%`}
                 />
                 
@@ -420,12 +479,18 @@ export const OverviewModule: React.FC = () => {
             </ResponsiveContainer>
             
             {/* Enhanced Stats Overlay */}
-            <div className="absolute top-4 left-4 bg-white bg-opacity-95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-100">
+            <div 
+              className="absolute top-4 left-4 bg-opacity-95 backdrop-blur-sm p-3 rounded-xl shadow-lg border"
+              style={{ 
+                backgroundColor: colors.surface,
+                borderColor: colors.border
+              }}
+            >
               <div className="text-xs space-y-2">
                 <div className="flex items-center justify-between space-x-6">
                   <div className="flex items-center space-x-2">
-                    <ArrowUp className="w-3 h-3" style={{ color: COLORS.text.light }} />
-                    <span style={{ color: COLORS.text.light }}>Pico máximo:</span>
+                    <ArrowUp className="w-3 h-3" style={{ color: colors.textSecondary }} />
+                    <span style={{ color: colors.textSecondary }}>Pico máximo:</span>
                   </div>
                   <span style={{ color: getGradientColor() }} className="font-bold text-lg">
                     {Math.max(...getChartData().map(d => d.value))}%
@@ -433,19 +498,19 @@ export const OverviewModule: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between space-x-6">
                   <div className="flex items-center space-x-2">
-                    <Minus className="w-3 h-3" style={{ color: COLORS.text.light }} />
-                    <span style={{ color: COLORS.text.light }}>Promedio:</span>
+                    <Minus className="w-3 h-3" style={{ color: colors.textSecondary }} />
+                    <span style={{ color: colors.textSecondary }}>Promedio:</span>
                   </div>
-                  <span style={{ color: COLORS.text.dark }} className="font-semibold">
+                  <span style={{ color: colors.textPrimary }} className="font-semibold">
                     {Math.round(getChartData().reduce((acc, d) => acc + d.value, 0) / getChartData().length)}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between space-x-6">
                   <div className="flex items-center space-x-2">
-                    <ArrowDown className="w-3 h-3" style={{ color: COLORS.text.light }} />
-                    <span style={{ color: COLORS.text.light }}>Mínimo:</span>
+                    <ArrowDown className="w-3 h-3" style={{ color: colors.textSecondary }} />
+                    <span style={{ color: colors.textSecondary }}>Mínimo:</span>
                   </div>
-                  <span style={{ color: '#6b7280' }} className="font-medium">
+                  <span style={{ color: colors.textSecondary }} className="font-medium">
                     {Math.min(...getChartData().map(d => d.value))}%
                   </span>
                 </div>
@@ -453,14 +518,20 @@ export const OverviewModule: React.FC = () => {
             </div>
 
             {/* Period Indicator */}
-            <div className="absolute top-4 right-4 bg-white bg-opacity-95 backdrop-blur-sm px-3 py-2 rounded-xl shadow-lg border border-gray-100">
+            <div 
+              className="absolute top-4 right-4 bg-opacity-95 backdrop-blur-sm px-3 py-2 rounded-xl shadow-lg border"
+              style={{ 
+                backgroundColor: colors.surface,
+                borderColor: colors.border
+              }}
+            >
               <div className="flex items-center space-x-2">
                 <div 
                   className="w-3 h-3 rounded-full transition-all duration-300"
                   style={{ backgroundColor: getGradientColor() }}
                 />
                 <span 
-                  style={{ color: COLORS.text.dark }} 
+                  style={{ color: colors.textPrimary }} 
                   className="font-semibold text-sm"
                 >
                   {getPeriodLabel()}
@@ -484,7 +555,7 @@ export const OverviewModule: React.FC = () => {
 
         {/* Recent Activity */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-6" style={{ color: COLORS.text.dark }}>
+          <h3 className="text-lg font-semibold mb-6" style={{ color: colors.textPrimary }}>
             Actividad Reciente
           </h3>
           <div className="space-y-4">
@@ -494,16 +565,28 @@ export const OverviewModule: React.FC = () => {
               { time: '09:45', action: 'Espacio ocupado', space: 'B-23' },
               { time: '09:30', action: 'Reporte generado', type: 'Diario' }
             ].map((activity, index) => (
-              <div key={index} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
+              <div 
+                key={index} 
+                className="flex items-center space-x-3 p-3 rounded-lg transition-colors cursor-pointer"
+                style={{ 
+                  backgroundColor: 'transparent'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = `${colors.accent}10`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
                 <div 
                   className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: COLORS.primary.medium }}
+                  style={{ backgroundColor: colors.accent }}
                 />
                 <div className="flex-1">
-                  <p className="text-sm font-medium" style={{ color: COLORS.text.dark }}>
+                  <p className="text-sm font-medium" style={{ color: colors.textPrimary }}>
                     {activity.action}
                   </p>
-                  <p className="text-xs" style={{ color: COLORS.text.light }}>
+                  <p className="text-xs" style={{ color: colors.textSecondary }}>
                     {activity.time} - {activity.user || activity.space || activity.type}
                   </p>
                 </div>
@@ -515,7 +598,7 @@ export const OverviewModule: React.FC = () => {
 
       {/* Quick Actions */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-6" style={{ color: COLORS.text.dark }}>
+        <h3 className="text-lg font-semibold mb-6" style={{ color: colors.textPrimary }}>
           Acciones Rápidas
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -538,30 +621,33 @@ export const OverviewModule: React.FC = () => {
           ].map((action, index) => (
             <button
               key={index}
-              className="p-4 border rounded-lg text-left hover:shadow-md transition-all duration-200"
-              style={{ borderColor: COLORS.primary.light }}
+              className="p-4 border rounded-lg text-left hover:shadow-md transition-all duration-200 cursor-pointer"
+              style={{ 
+                borderColor: colors.border,
+                backgroundColor: 'transparent'
+              }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = COLORS.primary.light + '10';
-                e.currentTarget.style.borderColor = COLORS.primary.medium;
+                e.currentTarget.style.backgroundColor = `${colors.accent}10`;
+                e.currentTarget.style.borderColor = colors.accent;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.borderColor = COLORS.primary.light;
+                e.currentTarget.style.borderColor = colors.border;
               }}
             >
               <div 
                 className="mb-3 p-2 rounded-lg inline-flex"
                 style={{ 
-                  backgroundColor: `${COLORS.primary.light}20`, 
-                  color: COLORS.primary.medium 
+                  backgroundColor: `${colors.accent}20`, 
+                  color: colors.accent 
                 }}
               >
                 {action.icon}
               </div>
-              <h4 className="font-medium" style={{ color: COLORS.text.dark }}>
+              <h4 className="font-medium" style={{ color: colors.textPrimary }}>
                 {action.title}
               </h4>
-              <p className="text-sm" style={{ color: COLORS.text.light }}>
+              <p className="text-sm" style={{ color: colors.textSecondary }}>
                 {action.desc}
               </p>
             </button>
