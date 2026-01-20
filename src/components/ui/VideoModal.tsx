@@ -14,6 +14,7 @@ interface VideoModalProps {
   cameraLocation: string;
   isOnline: boolean;
   cameraId?: string;
+  videoSource?: string;
 }
 
 const VideoModal: React.FC<VideoModalProps> = ({ 
@@ -22,7 +23,8 @@ const VideoModal: React.FC<VideoModalProps> = ({
   cameraName, 
   cameraLocation, 
   isOnline,
-  cameraId = 'default'
+  cameraId = 'default',
+  videoSource
 }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [status, setStatus] = useState<any>(null);
@@ -30,9 +32,10 @@ const VideoModal: React.FC<VideoModalProps> = ({
 
   useEffect(() => {
     if (isOpen && isOnline) {
-      // Usar la URL del backend NestJS (puerto 4000) que hace proxy al servicio Python
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const url = `${backendUrl}/camera/video-feed?cameraId=${cameraId}&t=${Date.now()}`;
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      // Prioritize videoSource if available
+      const targetId = videoSource || cameraId;
+      const url = `${backendUrl}/camera/video-feed?cameraId=${targetId}&t=${Date.now()}`;
       setStreamUrl(url);
 
       // Cargar estado cada 2 segundos
@@ -41,11 +44,12 @@ const VideoModal: React.FC<VideoModalProps> = ({
       
       return () => clearInterval(interval);
     }
-  }, [isOpen, isOnline, cameraId]);
+  }, [isOpen, isOnline, cameraId, videoSource]);
 
   const fetchStatus = async () => {
     try {
-      const data = await parkingService.getParkingStatusLive(cameraId);
+      const targetId = videoSource || cameraId;
+      const data = await parkingService.getParkingStatusLive(targetId);
       setStatus(data);
     } catch (err) {
       console.error('Error fetching status:', err);
@@ -54,7 +58,8 @@ const VideoModal: React.FC<VideoModalProps> = ({
 
   const controlVideo = async (action: string) => {
     try {
-      await parkingService.controlVideo(action as any, cameraId);
+      const targetId = videoSource || cameraId;
+      await parkingService.controlVideo(action as any, targetId);
       
       if (action === 'play') {
         setIsPlaying(true);
@@ -107,21 +112,25 @@ const VideoModal: React.FC<VideoModalProps> = ({
           </div>
 
           {/* Video Content */}
-          <div className="relative bg-black">
-            {isOnline ? (
+          <div className="relative bg-black min-h-[400px] flex items-center justify-center">
+            {isOnline && streamUrl ? (
               <img
                 src={streamUrl}
                 alt={`Stream de ${cameraName}`}
                 className="w-full h-auto"
               />
             ) : (
-              <div className="flex items-center justify-center h-96 text-gray-500">
-                <div className="text-center">
-                  <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 21l-3-3m0 0L5.636 5.636M15 12H9m6 0a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <p>Cámara fuera de línea</p>
-                </div>
+              <div className="flex flex-col items-center justify-center text-gray-500">
+                {isOnline ? (
+                  <div className="w-12 h-12 border-4 border-gray-600 border-t-white rounded-full animate-spin mb-4"></div>
+                ) : (
+                  <>
+                    <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 21l-3-3m0 0L5.636 5.636M15 12H9m6 0a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <p>Cámara fuera de línea</p>
+                  </>
+                )}
               </div>
             )}
           </div>

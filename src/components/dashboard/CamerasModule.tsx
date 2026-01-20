@@ -172,6 +172,7 @@ const CameraCard: React.FC<{
           cameraName={camera.name}
           cameraId={camera.id}
           className="rounded-lg"
+          videoSource={camera.stream}
         />
       </div>
 
@@ -338,24 +339,49 @@ export const CamerasModule: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showVideoModal]);
 
-  // Función para recargar datos mock (no intenta conectar al backend)
-  const loadCameraData = () => {
-    setLoading(true);
-    setCameras(mockCameras);
-    
-    // Calcular estadísticas mock
-    const totalSpaces = mockCameras.reduce((sum, cam) => sum + (cam.totalSpaces || 12), 0);
-    const occupiedSpaces = mockCameras.reduce((sum, cam) => sum + (cam.occupiedSpaces || 0), 0);
-    
-    setCameraStats({
-      totalSpaces,
-      occupiedSpaces,
-      emptySpaces: totalSpaces - occupiedSpaces,
-      occupancyRate: totalSpaces > 0 ? (occupiedSpaces / totalSpaces) * 100 : 0
-    });
-    
-    setLastUpdate(new Date().toLocaleTimeString());
-    setLoading(false);
+  const loadCameraData = async () => {
+    try {
+      // Cargar cámaras reales desde el backend
+      const realCameras = await parkingService.getCameras();
+      
+      // Convertir al formato del componente
+      const convertedCameras: Camera[] = realCameras.map((cam: any) => ({
+        id: cam.id,
+        name: cam.name,
+        location: cam.description || 'Sin descripción',
+        status: cam.isActive ? 'online' : 'offline',
+        isActive: cam.isActive,
+        lastActivity: cam.updatedAt ? new Date(cam.updatedAt).toLocaleString() : 'Never',
+        occupiedSpaces: 0,
+        emptySpaces: cam.total_parking || 0,
+        totalSpaces: cam.total_parking || 0,
+        occupancyRate: 0,
+        stream: cam.streamUrl
+      }));
+      
+      setCameras(convertedCameras);
+      
+      // Actualizar estadísticas globales con la primera cámara activa
+      if (convertedCameras.length > 0 && convertedCameras[0].status === 'online') {
+        await loadLiveStats(convertedCameras[0].id);
+      }
+      
+      // Cargar datos estadísticos legacy
+      try {
+        const data = await cameraService.getAllCameraData();
+        const stats = cameraService.calculateCameraStats(data);
+        setCameraData(data);
+        setCameraStats(stats);
+      } catch (error) {
+        console.log('Legacy data not available:', error);
+      }
+      
+      setLastUpdate(new Date().toLocaleTimeString());
+    } catch (error) {
+      console.error('Error loading camera data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filteredCameras = cameras.filter(camera =>
@@ -807,6 +833,7 @@ export const CamerasModule: React.FC = () => {
         cameraLocation={selectedCamera?.location || ''}
         isOnline={selectedCamera?.status === 'online'}
         cameraId={selectedCamera?.id || 'default'}
+        videoSource={selectedCamera?.stream}
       />
     </div>
   );

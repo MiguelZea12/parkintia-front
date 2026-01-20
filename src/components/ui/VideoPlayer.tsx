@@ -7,13 +7,15 @@ interface VideoPlayerProps {
   cameraName: string;
   className?: string;
   cameraId?: string;
+  videoSource?: string;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
   isOnline, 
   cameraName, 
   className,
-  cameraId = 'default'
+  cameraId = 'default',
+  videoSource
 }) => {
   const [streamUrl, setStreamUrl] = useState('');
   const [error, setError] = useState(false);
@@ -23,12 +25,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       // Usar la URL del backend NestJS (puerto 4000) que hace proxy al servicio Python
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const url = `${backendUrl}/camera/video-feed?cameraId=${cameraId}&t=${Date.now()}`;
+    if (isOnline) {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      // Prioritize videoSource if available (e.g., 'cam-01', 'cam-08')
+      const targetId = videoSource || cameraId;
+      const url = `${backendUrl}/camera/video-feed?cameraId=${targetId}&t=${Date.now()}`;
       setStreamUrl(url);
       setError(false);
     } else {
       setStreamUrl('');
     }
-  }, [isOnline, cameraId]);
+  }, [isOnline, cameraId, videoSource]);
 
   if (!isOnline) {
     return (
@@ -73,12 +80,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   return (
     <div className={`w-full h-full relative group bg-black ${className}`}>
-      <img
-        src={streamUrl}
-        alt={`Stream de ${cameraName}`}
-        className="w-full h-full object-cover"
-        onError={() => setError(true)}
-      />
+      {streamUrl ? (
+        <img
+          src={streamUrl}
+          alt={`Stream de ${cameraName}`}
+          className="w-full h-full object-cover"
+          onError={() => setError(true)}
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-gray-600 border-t-white rounded-full animate-spin"></div>
+        </div>
+      )}
 
       {/* Live indicator */}
       <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium flex items-center z-10">
