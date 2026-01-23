@@ -777,10 +777,10 @@ export default function Home() {
                 aria-label="Cambiar tema"
               >
                 <div className={`transition-all duration-500 ${isDarkMode ? 'rotate-0 scale-100' : 'rotate-90 scale-0'} absolute inset-0 flex items-center justify-center`}>
-                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
+                  <Sun className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" />
                 </div>
                 <div className={`transition-all duration-500 ${isDarkMode ? '-rotate-90 scale-0' : 'rotate-0 scale-100'}`}>
-                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" />
+                  <Moon className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500" />
                 </div>
                 {/* Glow effect */}
                 <div 
@@ -840,10 +840,10 @@ export default function Home() {
                 />
               </Link>
 
-              {/* Mobile Menu Button Mejorado - Más compacto */}
+              {/* Mobile Menu Button Mejorado - Más grande y visible */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-110 relative cursor-pointer flex-shrink-0"
+                className="md:hidden p-3 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 relative cursor-pointer flex-shrink-0"
                 style={{ 
                   backgroundColor: `${colors.border}60`,
                   color: colors.textPrimary
@@ -851,10 +851,10 @@ export default function Home() {
                 aria-label="Menú móvil"
               >
                 <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isMobileMenuOpen ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`}>
-                  <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Menu className="w-6 h-6 sm:w-7 sm:h-7" />
                 </div>
                 <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isMobileMenuOpen ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`}>
-                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <X className="w-6 h-6 sm:w-7 sm:h-7" />
                 </div>
               </button>
             </div>
