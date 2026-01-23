@@ -21,10 +21,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (isOnline && cameraId) {
-      // Usar la URL del backend NestJS (puerto 4000) que hace proxy al servicio Python
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const url = `${backendUrl}/camera/video-feed?cameraId=${cameraId}&t=${Date.now()}`;
     if (isOnline) {
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       // Prioritize videoSource if available (e.g., 'cam-01', 'cam-08')
@@ -81,11 +77,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   return (
     <div className={`w-full h-full relative group bg-black ${className}`}>
       {streamUrl ? (
-        <img
+        <video
           src={streamUrl}
-          alt={`Stream de ${cameraName}`}
           className="w-full h-full object-cover"
           onError={() => setError(true)}
+          autoPlay
+          muted
+          playsInline
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
