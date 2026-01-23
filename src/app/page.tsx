@@ -637,27 +637,27 @@ export default function Home() {
             : 'none'
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 lg:h-18">
-            {/* Logo Mejorado */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-14 sm:h-16 lg:h-18">
+            {/* Logo Mejorado - Más compacto en móvil */}
             <Link 
               href="/" 
-              className="flex items-center space-x-3 group relative"
+              className="flex items-center space-x-2 sm:space-x-3 group relative flex-shrink-0"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
               <div className="relative">
                 <div 
-                  className="w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 shadow-lg"
+                  className="w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 shadow-lg"
                   style={{ 
                     backgroundColor: colors.accent,
-                    boxShadow: `0 8px 16px ${colors.accent}40`
+                    boxShadow: `0 4px 12px ${colors.accent}40`
                   }}
                 >
-                  <ParkingCircle className="w-6 h-6 lg:w-7 lg:h-7 text-white transition-transform duration-300 group-hover:scale-110" />
+                  <ParkingCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white transition-transform duration-300 group-hover:scale-110" />
                 </div>
                 {/* Efecto de brillo */}
                 <div 
-                  className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  className="absolute inset-0 rounded-lg sm:rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                   style={{ 
                     background: `radial-gradient(circle, ${colors.accent}40 0%, transparent 70%)`
                   }}
@@ -665,13 +665,13 @@ export default function Home() {
               </div>
               <div className="flex flex-col">
                 <span 
-                  className="text-xl lg:text-2xl font-bold transition-all duration-300 group-hover:scale-105"
+                  className="text-base sm:text-xl lg:text-2xl font-bold transition-all duration-300 group-hover:scale-105"
                   style={{ color: colors.textPrimary }}
                 >
                   Parkintia
                 </span>
                 <span 
-                  className="text-[10px] lg:text-xs font-medium -mt-0.5 hidden sm:block opacity-80"
+                  className="text-[9px] sm:text-[10px] lg:text-xs font-medium -mt-0.5 hidden sm:block opacity-80"
                   style={{ color: colors.accent }}
                 >
                   Intelligent Parking Management
@@ -715,64 +715,61 @@ export default function Home() {
               })}
             </div>
 
-            {/* Actions Mejorados */}
-            <div className="flex items-center space-x-2 lg:space-x-3">
-              {/* Language Toggle - Banderas Cuadradas con Animación */}
+            {/* Actions Mejorados - Optimizados para móvil */}
+            <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0">
+              {/* Language Toggle - Animación suave con fade */}
               <button
-                onClick={() => {
-                  const btn = document.getElementById('lang-btn');
-                  if (btn) {
-                    btn.classList.add('animate-flip');
-                    setTimeout(() => {
-                      toggleLanguage();
-                      btn.classList.remove('animate-flip');
-                    }, 150);
-                  } else {
-                    toggleLanguage();
-                  }
-                }}
-                id="lang-btn"
-                className="relative overflow-hidden rounded-lg cursor-pointer hover:scale-110 transition-transform duration-200"
+                onClick={toggleLanguage}
+                className="relative cursor-pointer hover:scale-110 transition-all duration-300 flex-shrink-0 border-0 bg-transparent p-0"
                 style={{ 
-                  width: '36px',
-                  height: '36px',
-                  transformStyle: 'preserve-3d',
-                  perspective: '1000px'
+                  width: '28px',
+                  height: '28px'
                 }}
                 aria-label={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
               >
-                <div 
-                  className="w-full h-full transition-transform duration-300 ease-in-out"
+                {/* Bandera de España */}
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 3 2" 
+                  className="absolute inset-0 w-full h-full transition-all duration-500 ease-in-out"
                   style={{
-                    transform: language === 'es' ? 'rotateY(0deg)' : 'rotateY(360deg)'
+                    opacity: language === 'es' ? 1 : 0,
+                    transform: language === 'es' ? 'scale(1)' : 'scale(0.8)',
+                    pointerEvents: language === 'es' ? 'auto' : 'none',
+                    borderRadius: '4px'
                   }}
                 >
-                  {language === 'es' ? (
-                    // Bandera de España - Cuadrada
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" className="w-full h-full rounded-lg">
-                      <rect width="3" height="2" fill="#c60b1e"/>
-                      <rect width="3" height="1" y="0.5" fill="#ffc400"/>
-                    </svg>
-                  ) : (
-                    // Bandera del Reino Unido - Cuadrada
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" className="w-full h-full rounded-lg">
-                      <clipPath id="ukClip"><rect width="60" height="30"/></clipPath>
-                      <g clipPath="url(#ukClip)">
-                        <path fill="#012169" d="M0 0v30h60V0z"/>
-                        <path stroke="#fff" strokeWidth="6" d="M0 0l60 30m0-30L0 30"/>
-                        <path stroke="#C8102E" strokeWidth="4" d="M0 0l60 30m0-30L0 30" clipPath="url(#ukClip)"/>
-                        <path stroke="#fff" strokeWidth="10" d="M30 0v30M0 15h60"/>
-                        <path stroke="#C8102E" strokeWidth="6" d="M30 0v30M0 15h60"/>
-                      </g>
-                    </svg>
-                  )}
-                </div>
+                  <rect width="3" height="2" fill="#c60b1e"/>
+                  <rect width="3" height="1" y="0.5" fill="#ffc400"/>
+                </svg>
+                
+                {/* Bandera del Reino Unido */}
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 60 30" 
+                  className="absolute inset-0 w-full h-full transition-all duration-500 ease-in-out"
+                  style={{
+                    opacity: language === 'en' ? 1 : 0,
+                    transform: language === 'en' ? 'scale(1)' : 'scale(0.8)',
+                    pointerEvents: language === 'en' ? 'auto' : 'none',
+                    borderRadius: '4px'
+                  }}
+                >
+                  <clipPath id="ukClip"><rect width="60" height="30"/></clipPath>
+                  <g clipPath="url(#ukClip)">
+                    <path fill="#012169" d="M0 0v30h60V0z"/>
+                    <path stroke="#fff" strokeWidth="6" d="M0 0l60 30m0-30L0 30"/>
+                    <path stroke="#C8102E" strokeWidth="4" d="M0 0l60 30m0-30L0 30" clipPath="url(#ukClip)"/>
+                    <path stroke="#fff" strokeWidth="10" d="M30 0v30M0 15h60"/>
+                    <path stroke="#C8102E" strokeWidth="6" d="M30 0v30M0 15h60"/>
+                  </g>
+                </svg>
               </button>
 
-              {/* Theme Toggle Mejorado */}
+              {/* Theme Toggle Mejorado - Más compacto en móvil */}
               <button
                 onClick={toggleTheme}
-                className="relative p-2.5 rounded-xl transition-all duration-500 hover:scale-110 overflow-hidden group cursor-pointer"
+                className="relative p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all duration-500 hover:scale-110 overflow-hidden group cursor-pointer flex-shrink-0"
                 style={{ 
                   backgroundColor: `${colors.border}60`,
                   color: colors.textPrimary
@@ -780,14 +777,14 @@ export default function Home() {
                 aria-label="Cambiar tema"
               >
                 <div className={`transition-all duration-500 ${isDarkMode ? 'rotate-0 scale-100' : 'rotate-90 scale-0'} absolute inset-0 flex items-center justify-center`}>
-                  <Sun className="w-5 h-5 text-yellow-500" />
+                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
                 </div>
                 <div className={`transition-all duration-500 ${isDarkMode ? '-rotate-90 scale-0' : 'rotate-0 scale-100'}`}>
-                  <Moon className="w-5 h-5 text-indigo-500" />
+                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" />
                 </div>
                 {/* Glow effect */}
                 <div 
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg sm:rounded-xl"
                   style={{ 
                     boxShadow: isDarkMode 
                       ? '0 0 20px rgba(250, 204, 21, 0.4)' 
@@ -796,10 +793,10 @@ export default function Home() {
                 />
               </button>
 
-              {/* Botón Ingresar - Diseño Moderno Premium */}
+              {/* Botón Ingresar - Oculto en móvil pequeño, visible desde sm */}
               <Link 
                 href="/login"
-                className="group relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 overflow-hidden hover:scale-105 hover:shadow-lg cursor-pointer"
+                className="hidden sm:flex group relative items-center gap-1.5 sm:gap-2 px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 overflow-hidden hover:scale-105 hover:shadow-lg cursor-pointer flex-shrink-0 whitespace-nowrap"
                 style={{ 
                   color: isDarkMode ? colors.textPrimary : '#FFFFFF',
                   backgroundColor: isDarkMode ? colors.surface : colors.primary,
@@ -826,29 +823,27 @@ export default function Home() {
                 />
                 
                 {/* Icon with pulse animation */}
-                <div className="relative z-10 flex items-center justify-center">
-                  <LogIn 
-                    className="w-4 h-4 transition-all duration-300 group-hover:scale-110" 
-                    style={{ color: isDarkMode ? colors.accent : '#FFFFFF' }}
-                  />
-                </div>
+                <LogIn 
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 group-hover:scale-110 relative z-10" 
+                  style={{ color: isDarkMode ? colors.accent : '#FFFFFF' }}
+                />
                 
                 {/* Text */}
                 <span className="relative z-10 tracking-wide">
                   {t.nav.login}
                 </span>
                 
-                {/* Arrow with slide animation */}
+                {/* Arrow with slide animation - Oculta en pantallas pequeñas */}
                 <ArrowRight 
-                  className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1 relative z-10"
+                  className="hidden lg:block w-4 h-4 transition-all duration-300 group-hover:translate-x-1 relative z-10"
                   style={{ color: isDarkMode ? colors.accent : '#FFFFFF' }}
                 />
               </Link>
 
-              {/* Mobile Menu Button Mejorado */}
+              {/* Mobile Menu Button Mejorado - Más compacto */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2.5 rounded-xl transition-all duration-300 hover:scale-110 relative cursor-pointer"
+                className="md:hidden p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-110 relative cursor-pointer flex-shrink-0"
                 style={{ 
                   backgroundColor: `${colors.border}60`,
                   color: colors.textPrimary
@@ -856,34 +851,34 @@ export default function Home() {
                 aria-label="Menú móvil"
               >
                 <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isMobileMenuOpen ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`}>
-                  <Menu className="w-5 h-5" />
+                  <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isMobileMenuOpen ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`}>
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
               </button>
             </div>
           </div>
 
-          {/* Mobile Menu Mejorado */}
+          {/* Mobile Menu Mejorado - Mejor espaciado */}
           <div 
             className={`md:hidden overflow-hidden transition-all duration-500 ${
-              isMobileMenuOpen ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'
+              isMobileMenuOpen ? 'max-h-[500px] opacity-100 mt-3 sm:mt-4' : 'max-h-0 opacity-0'
             }`}
           >
             <div 
-              className="rounded-2xl p-4 space-y-2 shadow-xl"
+              className="rounded-xl sm:rounded-2xl p-3 sm:p-4 space-y-1.5 sm:space-y-2 shadow-xl"
               style={{ 
                 backgroundColor: colors.surface,
                 border: `1px solid ${colors.border}`,
                 boxShadow: `0 20px 40px -12px ${isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.15)'}`
               }}
             >
-              {/* Botón Ingresar en móvil - Diseño Premium */}
+              {/* Botón Ingresar en móvil - Visible solo en pantallas muy pequeñas (donde está oculto arriba) */}
               <Link
                 href="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="group relative flex items-center justify-center gap-3 p-4 rounded-xl font-bold transition-all duration-300 mb-3 overflow-hidden hover:scale-[1.02] active:scale-95 cursor-pointer"
+                className="sm:hidden group relative flex items-center justify-center gap-3 p-4 rounded-xl font-bold transition-all duration-300 mb-3 overflow-hidden active:scale-95 cursor-pointer"
                 style={{ 
                   backgroundColor: colors.accent,
                   color: '#FFFFFF',
@@ -893,7 +888,7 @@ export default function Home() {
               >
                 {/* Animated gradient overlay */}
                 <div 
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity duration-300"
                   style={{ 
                     background: `linear-gradient(135deg, ${colors.accentLight}30 0%, ${colors.accentDark}30 100%)`
                   }}
@@ -901,23 +896,23 @@ export default function Home() {
                 
                 {/* Shine effect */}
                 <div 
-                  className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+                  className="absolute inset-0 -translate-x-full group-active:translate-x-full transition-transform duration-700"
                   style={{
                     background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)'
                   }}
                 />
                 
                 {/* Icon */}
-                <LogIn className="w-5 h-5 transition-all duration-300 group-hover:scale-110 relative z-10" />
+                <LogIn className="w-5 h-5 transition-all duration-300 group-active:scale-110 relative z-10" />
                 
                 {/* Text */}
                 <span className="relative z-10 text-base tracking-wide">Ingresar a mi cuenta</span>
                 
                 {/* Arrow */}
-                <ArrowRight className="w-5 h-5 transition-all duration-300 group-hover:translate-x-1 relative z-10" />
+                <ArrowRight className="w-5 h-5 transition-all duration-300 group-active:translate-x-1 relative z-10" />
               </Link>
 
-              {/* Links de navegación */}
+              {/* Links de navegación - Mejor espaciado */}
               {navLinks.map((link, index) => {
                 const isActive = activeSection === link.href.slice(1);
                 return (
@@ -925,25 +920,25 @@ export default function Home() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 p-3.5 rounded-xl transition-all duration-300 ${
-                      isActive ? 'scale-105' : 'hover:scale-105'
+                    className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-300 active:scale-95 ${
+                      isActive ? 'shadow-md' : ''
                     }`}
                     style={{ 
                       backgroundColor: isActive ? `${colors.accent}15` : 'transparent',
                       color: isActive ? colors.accent : colors.textPrimary,
-                      border: isActive ? `1px solid ${colors.accent}30` : 'none',
+                      border: isActive ? `1px solid ${colors.accent}30` : `1px solid transparent`,
                       animationDelay: `${index * 50}ms`
                     }}
                   >
                     <div 
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      className={`w-2 h-2 rounded-full transition-all duration-300 flex-shrink-0 ${
                         isActive ? 'scale-150' : ''
                       }`}
                       style={{ backgroundColor: colors.accent }}
                     />
-                    <span className="font-semibold">{link.label}</span>
+                    <span className="font-semibold text-sm sm:text-base">{link.label}</span>
                     {isActive && (
-                      <ChevronRight className="w-4 h-4 ml-auto" style={{ color: colors.accent }} />
+                      <ChevronRight className="w-4 h-4 ml-auto flex-shrink-0" style={{ color: colors.accent }} />
                     )}
                   </a>
                 );
