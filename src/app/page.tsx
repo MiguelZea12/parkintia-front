@@ -190,7 +190,7 @@ export default function Home() {
         subtitle: 'Precios transparentes sin costos ocultos. Todos los planes incluyen soporte técnico y actualizaciones.',
         monthly: 'Mensual',
         yearly: 'Anual',
-        discount: '-17%',
+        discount: '-25%',
         saveBadge: 'Ahorra 2 meses con el plan anual',
         perMonth: '/mes',
         savings: '2 meses gratis incluidos',
@@ -277,7 +277,7 @@ export default function Home() {
         subtitle: 'Transparent pricing with no hidden costs. All plans include technical support and updates.',
         monthly: 'Monthly',
         yearly: 'Yearly',
-        discount: '-17%',
+        discount: '-25%',
         saveBadge: 'Save 2 months with annual plan',
         perMonth: '/month',
         savings: '2 months free included',
@@ -840,21 +840,20 @@ export default function Home() {
                 />
               </Link>
 
-              {/* Mobile Menu Button Mejorado - Más grande y visible */}
+              {/* Mobile Menu Button Mejorado - Sin contenedor, más grande */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-3 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 relative cursor-pointer flex-shrink-0"
+                className="md:hidden p-0 border-0 bg-transparent transition-all duration-300 hover:scale-110 active:scale-95 relative cursor-pointer flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9"
                 style={{ 
-                  backgroundColor: `${colors.border}60`,
                   color: colors.textPrimary
                 }}
                 aria-label="Menú móvil"
               >
                 <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isMobileMenuOpen ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`}>
-                  <Menu className="w-6 h-6 sm:w-7 sm:h-7" />
+                  <Menu className="w-7 h-7 sm:w-8 sm:h-8" />
                 </div>
                 <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isMobileMenuOpen ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`}>
-                  <X className="w-6 h-6 sm:w-7 sm:h-7" />
+                  <X className="w-7 h-7 sm:w-8 sm:h-8" />
                 </div>
               </button>
             </div>
@@ -1597,7 +1596,9 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-8">
             {pricingPlans.map((plan, index) => {
               const IconComponent = plan.icon;
-              const price = selectedPlan === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+              // Calcular precio anual con descuento del 25%
+              const yearlyPriceWithDiscount = Math.round(plan.monthlyPrice * 12 * 0.75);
+              const price = selectedPlan === 'monthly' ? plan.monthlyPrice : yearlyPriceWithDiscount;
               const isYearly = selectedPlan === 'yearly';
               const isSelected = selectedPricingCard === index;
               const isPopular = plan.popular;
@@ -1688,6 +1689,19 @@ export default function Home() {
 
                   {/* Precio */}
                   <div className="text-center mb-6">
+                    {isYearly && (
+                      <div className="mb-2">
+                        <span 
+                          className="text-lg line-through opacity-60" 
+                          style={{ color: colors.textSecondary }}
+                        >
+                          ${plan.monthlyPrice * 12}
+                        </span>
+                        <span className="text-xs ml-2" style={{ color: colors.textSecondary }}>
+                          {language === 'es' ? '/año' : '/year'}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-baseline justify-center gap-1">
                       <span className="text-lg" style={{ color: colors.textSecondary }}>$</span>
                       <span 
@@ -1696,7 +1710,9 @@ export default function Home() {
                       >
                         {price}
                       </span>
-                      <span className="text-lg ml-1" style={{ color: colors.textSecondary }}>/mes</span>
+                      <span className="text-lg ml-1" style={{ color: colors.textSecondary }}>
+                        {isYearly ? (language === 'es' ? '/año' : '/year') : (language === 'es' ? '/mes' : '/month')}
+                      </span>
                     </div>
                     {isYearly && (
                       <div 
@@ -1709,7 +1725,7 @@ export default function Home() {
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
-                        <span>2 meses gratis incluidos</span>
+                        <span>{language === 'es' ? '25% de descuento aplicado' : '25% discount applied'}</span>
                       </div>
                     )}
                   </div>
