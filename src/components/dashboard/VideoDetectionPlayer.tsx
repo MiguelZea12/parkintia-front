@@ -10,7 +10,7 @@ interface VideoDetectionPlayerProps {
 }
 
 export default function VideoDetectionPlayer({ 
-  cameraId = 'default', 
+  cameraId = 'mobile', 
   showControls = true,
   className = '' 
 }: VideoDetectionPlayerProps) {

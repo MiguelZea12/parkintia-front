@@ -41,7 +41,7 @@ export default function LiveDetectionPage() {
 
         {/* Video Player Component */}
         <VideoDetectionPlayer 
-          cameraId="default"
+          cameraId="mobile"
           showControls={true}
           className="mb-6"
         />

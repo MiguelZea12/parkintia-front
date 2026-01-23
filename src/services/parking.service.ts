@@ -114,7 +114,7 @@ export const parkingService = {
     return response.json();
   },
 
-  async getParkingStatusLive(cameraId: string = 'default'): Promise<ParkingStatusSummary> {
+  async getParkingStatusLive(cameraId: string = 'mobile'): Promise<ParkingStatusSummary> {
     try {
       const response = await fetch(`${API_URL}/camera/parking-status-live?cameraId=${cameraId}`);
       if (response.ok) return response.json();
@@ -143,11 +143,11 @@ export const parkingService = {
     return `http://localhost:5000/api/video/feed?cameraId=${idParam}`;
   },
 
-  getVideoFeedUrl(cameraId: string = 'default'): string {
+  getVideoFeedUrl(cameraId: string = 'mobile'): string {
     return `http://localhost:5000/api/video/feed?cameraId=${cameraId}`;
   },
 
-  async controlVideo(action: 'play' | 'pause' | 'restart', cameraId: string = 'default'): Promise<any> {
+  async controlVideo(action: 'play' | 'pause' | 'restart', cameraId: string = 'mobile'): Promise<any> {
     const response = await fetch(`${API_URL}/camera/video-control`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
