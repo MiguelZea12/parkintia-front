@@ -1,7 +1,8 @@
 import { Camera, ParkingZone, ParkingStatusSummary } from '@/types/parking';
+import { fetchWithAuth, API_CONFIG } from '@/config/api.config';
 
-// Backend NestJS URL (puerto 4000), NO el servicio Python directo
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+// Backend NestJS URL (puerto 3001)
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export const parkingService = {
   // ========== CAMERAS ==========
@@ -12,21 +13,13 @@ export const parkingService = {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos timeout
       
-      const response = await fetch(`${API_URL}/api/cameras`, {
+      const response = await fetchWithAuth<Camera[]>('/cameras', {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         signal: controller.signal,
       });
       
       clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch cameras: ${response.status} ${response.statusText}`);
-      }
-      
-      return response.json();
+      return response;
     } catch (error: unknown) {
       // Si es un error de red o timeout, lanzar un error más descriptivo
       if (error instanceof Error && (error.name === 'AbortError' || error.name === 'TypeError' || error.message?.includes('fetch'))) {
@@ -37,88 +30,66 @@ export const parkingService = {
   },
 
   async getCamera(id: string): Promise<Camera> {
-    const response = await fetch(`${API_URL}/camera/${id}`);
-    if (!response.ok) throw new Error('Failed to fetch camera');
-    return response.json();
+    return fetchWithAuth<Camera>(`/cameras/${id}`);
   },
 
   async createCamera(data: Partial<Camera>): Promise<Camera> {
-    const response = await fetch(`${API_URL}/camera`, {
+    return fetchWithAuth<Camera>('/cameras', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to create camera');
-    return response.json();
   },
 
   async updateCamera(id: string, data: Partial<Camera>): Promise<Camera> {
-    const response = await fetch(`${API_URL}/camera/${id}`, {
+    return fetchWithAuth<Camera>(`/cameras/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to update camera');
-    return response.json();
   },
 
   async deleteCamera(id: string): Promise<void> {
-    const response = await fetch(`${API_URL}/camera/${id}`, {
+    await fetchWithAuth<void>(`/cameras/${id}`, {
       method: 'DELETE',
     });
-    if (!response.ok) throw new Error('Failed to delete camera');
   },
 
   // ========== PARKING ZONES ==========
 
   async getParkingZones(cameraId: string): Promise<ParkingZone[]> {
-    const response = await fetch(`${API_URL}/camera/${cameraId}/parking-zones`);
-    if (!response.ok) throw new Error('Failed to fetch parking zones');
-    return response.json();
+    return fetchWithAuth<ParkingZone[]>(`/cameras/${cameraId}/parking-zones`);
   },
 
   async createParkingZone(data: Omit<ParkingZone, 'id' | 'isOccupied'> & { cameraId: string }): Promise<ParkingZone> {
-    const response = await fetch(`${API_URL}/camera/parking-zones`, {
+    return fetchWithAuth<ParkingZone>('/cameras/parking-zones', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to create parking zone');
-    return response.json();
   },
 
   async bulkCreateParkingZones(cameraId: string, zones: Array<Omit<ParkingZone, 'id' | 'isOccupied'>>): Promise<ParkingZone[]> {
-    const response = await fetch(`${API_URL}/camera/parking-zones/bulk`, {
+    return fetchWithAuth<ParkingZone[]>('/cameras/parking-zones/bulk', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cameraId, zones }),
     });
-    if (!response.ok) throw new Error('Failed to bulk create parking zones');
-    return response.json();
   },
 
   async updateParkingZone(zoneId: string, data: Partial<ParkingZone>): Promise<ParkingZone> {
-    const response = await fetch(`${API_URL}/camera/parking-zones/${zoneId}`, {
+    return fetchWithAuth<ParkingZone>(`/cameras/parking-zones/${zoneId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to update parking zone');
-    return response.json();
   },
 
   async deleteParkingZone(zoneId: string): Promise<void> {
-    const response = await fetch(`${API_URL}/camera/parking-zones/${zoneId}`, {
+    await fetchWithAuth<void>(`/cameras/parking-zones/${zoneId}`, {
       method: 'DELETE',
     });
-    if (!response.ok) throw new Error('Failed to delete parking zone');
   },
 
   async deleteAllZones(cameraId: string): Promise<void> {
-    const response = await fetch(`${API_URL}/camera/${cameraId}/parking-zones/all`, {
+    await fetchWithAuth<void>(`/cameras/${cameraId}/parking-zones/all`, {
       method: 'DELETE',
     });
-    if (!response.ok) throw new Error('Failed to delete all zones');
   },
 
   // ========== PARKING STATUS & DETECTION ==========
@@ -134,15 +105,12 @@ export const parkingService = {
        }
     }
 
-    const response = await fetch(`${API_URL}/camera/${cameraId}/parking-status`);
-    if (!response.ok) throw new Error('Failed to fetch parking status');
-    return response.json();
+    return fetchWithAuth<ParkingStatusSummary>(`/cameras/${cameraId}/parking-status`);
   },
 
   async getParkingStatusLive(cameraId: string = 'default'): Promise<ParkingStatusSummary> {
     try {
-      const response = await fetch(`${API_URL}/camera/parking-status-live?cameraId=${cameraId}`);
-      if (response.ok) return response.json();
+      return await fetchWithAuth<ParkingStatusSummary>(`/cameras/parking-status-live?cameraId=${cameraId}`);
     } catch (e) {
       // Fallback a llamada directa si el backend falla
       console.warn('Backend live status failed, trying direct Python service...');
@@ -173,20 +141,28 @@ export const parkingService = {
   },
 
   async controlVideo(action: 'play' | 'pause' | 'restart', cameraId: string = 'default'): Promise<{ success: boolean; message?: string }> {
-    // Ruta correcta del backend NestJS
-    const response = await fetch(`${API_URL}/camera/video-control`, {
+    return fetchWithAuth<{ success: boolean; message?: string }>('/cameras/video-control', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, cameraId }),
     });
-    if (!response.ok) throw new Error('Failed to control video');
-    return response.json();
   },
 
   async getDefaultZones(): Promise<{ zones: ParkingZone[] }> {
-    const response = await fetch(`${API_URL}/camera/zones/default`);
-    if (!response.ok) throw new Error('Failed to fetch default zones');
-    return response.json();
+    return fetchWithAuth<{ zones: ParkingZone[] }>('/cameras/zones/default');
+  },
+
+  // ========== ESTADÍSTICAS GLOBALES ==========
+
+  async getGlobalStats(): Promise<{
+    totalSpaces: number;
+    occupiedSpaces: number;
+    freeSpaces: number;
+    occupancyRate: number;
+    totalCameras: number;
+    activeCameras: number;
+    camerasWithZones: number;
+  }> {
+    return fetchWithAuth('/cameras/stats/global');
   },
 };
 

@@ -35,7 +35,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       // Prioritize videoSource if available
       const targetId = videoSource || cameraId;
-      const url = `${backendUrl}/camera/video-feed?cameraId=${targetId}&t=${Date.now()}`;
+      const url = `${backendUrl}/cameras/video-feed?cameraId=${targetId}&t=${Date.now()}`;
       setStreamUrl(url);
 
       // Cargar estado cada 2 segundos

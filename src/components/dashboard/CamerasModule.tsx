@@ -167,7 +167,7 @@ const CameraCard: React.FC<{
         </div>
 
         <div className="flex items-center justify-between text-sm">
-          <span style={{ color: COLORS.text.light }}>
+          <span style={{ color: COLORS.light.textSecondary }}>
             Actividad: {camera.lastActivity}
           </span>
           <span 
@@ -193,6 +193,7 @@ export const CamerasModule: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<string>('');
   const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [backendError, setBackendError] = useState<string | null>(null);
   
   const [camerasStatsMap, setCamerasStatsMap] = useState<Record<string, any>>({});
   const [globalStats, setGlobalStats] = useState<CameraStats>({
@@ -246,6 +247,8 @@ export const CamerasModule: React.FC = () => {
 
   const loadCameraData = async () => {
     try {
+      setBackendError(null);
+      setLoading(true);
       const realCameras = await parkingService.getCameras();
       const convertedCameras: Camera[] = realCameras.map((cam: any) => ({
         id: cam.id,
@@ -261,6 +264,8 @@ export const CamerasModule: React.FC = () => {
       setCameras(convertedCameras);
       setLastUpdate(new Date().toLocaleTimeString());
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido al cargar datos';
+      setBackendError(errorMessage);
       console.error('Error loading camera data:', error);
     } finally {
       setLoading(false);
@@ -324,6 +329,45 @@ export const CamerasModule: React.FC = () => {
         </div>
       </div>
 
+      {/* Mensaje de error del backend */}
+      {backendError && (
+        <div 
+          className="p-4 border-l-4 rounded-lg shadow-md"
+          style={{ 
+            borderLeftColor: COLORS.status.error,
+            backgroundColor: `${COLORS.status.error}10`
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-0.5">
+              <svg className="w-5 h-5" style={{ color: COLORS.status.error }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold mb-1" style={{ color: COLORS.status.error }}>
+                Error de conexión
+              </h3>
+              <p className="text-sm" style={{ color: COLORS.light.textSecondary }}>
+                {backendError}
+              </p>
+              <p className="text-xs mt-2" style={{ color: COLORS.light.textSecondary }}>
+                Por favor, verifica que el servidor backend esté corriendo y accesible.
+              </p>
+            </div>
+            <button
+              onClick={() => setBackendError(null)}
+              className="flex-shrink-0 p-1 rounded hover:bg-black/5 transition-colors"
+              aria-label="Cerrar mensaje"
+            >
+              <svg className="w-4 h-4" style={{ color: COLORS.light.textSecondary }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="p-6">
           <div className="flex items-center justify-between">
@@ -331,7 +375,7 @@ export const CamerasModule: React.FC = () => {
               <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 Espacios Ocupados
               </p>
-              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
+              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.light.textPrimary }}>
                 {loading ? '...' : globalStats.occupiedSpaces}
               </p>
             </div>
@@ -349,7 +393,7 @@ export const CamerasModule: React.FC = () => {
               <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 Espacios Libres
               </p>
-              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
+              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.light.textPrimary }}>
                 {loading ? '...' : globalStats.emptySpaces}
               </p>
             </div>
@@ -367,11 +411,11 @@ export const CamerasModule: React.FC = () => {
               <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 Total Espacios
               </p>
-              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
+              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.light.textPrimary }}>
                 {loading ? '...' : globalStats.totalSpaces}
               </p>
             </div>
-            <div className="p-3 rounded-full" style={{ backgroundColor: `${COLORS.primary.medium}20`, color: COLORS.primary.medium }}>
+            <div className="p-3 rounded-full" style={{ backgroundColor: `${COLORS.light.primary}20`, color: COLORS.light.primary }}>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2" />
               </svg>
@@ -385,7 +429,7 @@ export const CamerasModule: React.FC = () => {
               <p className="text-sm font-medium" style={{ color: COLORS.light.textSecondary }}>
                 Tasa Ocupación
               </p>
-              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.text.dark }}>
+              <p className="text-3xl font-bold mt-2" style={{ color: COLORS.light.textPrimary }}>
                 {loading ? '...' : `${globalStats.occupancyRate.toFixed(1)}%`}
               </p>
             </div>
@@ -401,7 +445,7 @@ export const CamerasModule: React.FC = () => {
       <div className="flex justify-end">
         <select 
           className="px-4 py-2 border rounded-lg bg-white"
-          style={{ borderColor: COLORS.primary.light }}
+          style={{ borderColor: COLORS.light.primaryLight }}
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >

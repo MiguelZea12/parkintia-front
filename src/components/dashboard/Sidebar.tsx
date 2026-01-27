@@ -83,8 +83,7 @@ const NavIcons = {
 const navItems = [
   { id: 'overview', label: { es: 'Resumen', en: 'Overview' }, icon: 'overview' },
   { id: 'cameras', label: { es: 'Cámaras', en: 'Cameras' }, icon: 'cameras' },
-  { id: 'reports', label: { es: 'Reportes', en: 'Reports' }, icon: 'reports' },
-  { id: 'users', label: { es: 'Usuarios', en: 'Users' }, icon: 'users' }
+  { id: 'reports', label: { es: 'Reportes', en: 'Reports' }, icon: 'reports' }
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ 

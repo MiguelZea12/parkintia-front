@@ -1,13 +1,13 @@
 import { LoginCredentials, RegisterCredentials, AuthResponse, User, UserRole } from '@/types/auth';
-import { API_ROUTES, RouteUtils } from '@/config/routes';
+import { API_ROUTES } from '@/config/routes';
 
 // Configuración base de la API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 class AuthService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = RouteUtils.getApiUrl(endpoint);
-    const token = localStorage.getItem('auth_token');
+    const url = `${API_BASE_URL}${endpoint}`;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
     
     const config: RequestInit = {
       headers: {
@@ -34,191 +34,166 @@ class AuthService {
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    // MODO DEMO: Simulación de login - comentar cuando tengas backend real
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Simulación básica de validación
-        if (credentials.email === 'demo@parkintia.com' && credentials.password === 'demo123') {
-          const mockUser: User = {
-            id: '1',
-            email: credentials.email,
-            name: 'Usuario Demo',
-            role: UserRole.USER,
-            avatar: 'https://ui-avatars.com/api/?name=Usuario+Demo',
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          
-          resolve({
-            user: mockUser,
-            token: 'mock-jwt-token-123',
-            refreshToken: 'mock-refresh-token-456'
-          });
-        } else {
-          reject(new Error('Credenciales inválidas'));
-        }
-      }, 1500); // Simula latencia de red
-    });
+    try {
+      const response = await this.request<{
+        user: {
+          id: number;
+          email: string;
+          name: string;
+          role: string;
+        };
+        access_token: string;
+      }>(API_ROUTES.AUTH.LOGIN, {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+      });
 
-    // ---- CÓDIGO REAL (descomenta cuando tengas backend) ----
-    // try {
-    //   const response = await this.request<any>(API_ROUTES.AUTH.LOGIN, {
-    //     method: 'POST',
-    //     body: JSON.stringify(credentials),
-    //   });
-    //
-    //   return {
-    //     user: {
-    //       id: response.user.id,
-    //       email: response.user.email,
-    //       name: response.user.name || response.user.email.split('@')[0],
-    //       role: response.user.role || UserRole.USER,
-    //       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.name || response.user.email)}`,
-    //       createdAt: new Date(response.user.createdAt || Date.now()),
-    //       updatedAt: new Date(response.user.updatedAt || Date.now())
-    //     },
-    //     token: response.access_token,
-    //     refreshToken: response.refresh_token
-    //   };
-    // } catch (error) {
-    //   console.error('Login error:', error);
-    //   throw error;
-    // }
+      // Transformar la respuesta del backend al formato esperado
+      const user: User = {
+        id: String(response.user.id),
+        email: response.user.email,
+        name: response.user.name || response.user.email.split('@')[0],
+        role: this.mapRole(response.user.role),
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.name || response.user.email)}&background=6366f1&color=fff`,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      return {
+        user,
+        token: response.access_token,
+        refreshToken: response.access_token // Usar el mismo token por ahora
+      };
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Mapea el rol del backend al enum del frontend
+   */
+  private mapRole(role: string): UserRole {
+    switch (role?.toLowerCase()) {
+      case 'admin':
+        return UserRole.ADMIN;
+      case 'moderator':
+        return UserRole.MODERATOR;
+      default:
+        return UserRole.USER;
+    }
   }
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    // MODO DEMO: Simulación de registro - comentar cuando tengas backend real
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Verificar que las contraseñas coincidan
-        if (credentials.password !== credentials.confirmPassword) {
-          reject(new Error('Las contraseñas no coinciden'));
-          return;
-        }
+    try {
+      // Verificar que las contraseñas coincidan
+      if (credentials.password !== credentials.confirmPassword) {
+        throw new Error('Las contraseñas no coinciden');
+      }
 
-        // Simular validación de email válido
-        if (!credentials.email.includes('@')) {
-          reject(new Error('Email inválido'));
-          return;
-        }
+      // Crear usuario en el backend
+      const registerData = {
+        username: credentials.name,
+        email: credentials.email,
+        password: credentials.password,
+        role: 'user'
+      };
 
-        // Simular registro exitoso
-        const mockUser: User = {
-          id: '2',
-          email: credentials.email,
-          name: credentials.name,
-          role: UserRole.USER,
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(credentials.name)}`,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-        
-        resolve({
-          user: mockUser,
-          token: 'mock-jwt-token-register',
-          refreshToken: 'mock-refresh-token-register'
-        });
-      }, 2000); // Simula latencia de red
-    });
+      await this.request<any>(API_ROUTES.USERS.CREATE, {
+        method: 'POST',
+        body: JSON.stringify(registerData),
+      });
 
-    // ---- CÓDIGO REAL (descomenta cuando tengas backend) ----
-    // try {
-    //   if (credentials.password !== credentials.confirmPassword) {
-    //     throw new Error('Las contraseñas no coinciden');
-    //   }
-    //
-    //   const registerData = {
-    //     username: credentials.name,
-    //     email: credentials.email,
-    //     password: credentials.password,
-    //     role: 'user'
-    //     method: 'POST',
-    //     body: JSON.stringify(registerData),
-    //   });
-    //
-    //   // Después de crear el usuario, hacer login automáticamente
-    //   const loginResponse = await this.login({
-    //     email: credentials.email,
-    //     password: credentials.password
-    //   });
-    //
-    //   return loginResponse;
-    // } catch (error) {
-    //   console.error('Register error:', error);
-    //   throw error;
-    // }
+      // Después de crear el usuario, hacer login automáticamente
+      const loginResponse = await this.login({
+        email: credentials.email,
+        password: credentials.password
+      });
+
+      return loginResponse;
+    } catch (error) {
+      console.error('Register error:', error);
+      throw error;
+    }
   }
 
   async validateToken(token: string): Promise<User> {
-    // Simulación - en producción validarías el token con el backend
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (token.startsWith('mock-jwt-token')) {
-          resolve({
-            id: '1',
-            email: 'demo@parkintia.com',
-            name: 'Usuario Demo',
-            role: UserRole.USER,
-            avatar: 'https://ui-avatars.com/api/?name=Usuario+Demo',
+    // Si hay token, intentar validarlo con el backend
+    if (token) {
+      try {
+        // Decodificar el token JWT para obtener la información del usuario
+        const payload = this.decodeToken(token);
+        
+        if (payload && payload.email) {
+          return {
+            id: String(payload.sub || '1'),
+            email: payload.email,
+            name: payload.name || payload.email.split('@')[0],
+            role: this.mapRole(payload.role || 'user'),
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(payload.name || payload.email)}&background=6366f1&color=fff`,
             createdAt: new Date(),
             updatedAt: new Date()
-          });
-        } else {
-          reject(new Error('Token inválido'));
+          };
         }
-      }, 500);
-    });
+      } catch (error) {
+        console.error('Token validation error:', error);
+      }
+    }
+    
+    throw new Error('Token inválido');
+  }
 
-    // Para backend real:
-    // return this.request<User>(API_ROUTES.AUTH.ME);
+  /**
+   * Decodifica un token JWT sin verificar la firma
+   */
+  private decodeToken(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
   }
 
   async getCurrentUser(): Promise<User> {
-    // Para backend real:
-    // return this.request<User>(API_ROUTES.AUTH.ME);
-    
-    // Simulación
-    return this.validateToken(localStorage.getItem('auth_token') || '');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    if (!token) {
+      throw new Error('No hay sesión activa');
+    }
+    return this.validateToken(token);
   }
 
   async logout(): Promise<void> {
-    // Para backend real (opcional - invalidar token en servidor):
-    // return this.request<void>(API_ROUTES.AUTH.LOGOUT, { method: 'POST' });
-    
-    // Por ahora solo simulamos
+    // Limpiar tokens del localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('refresh_token');
+    }
     return Promise.resolve();
   }
 
   async refreshToken(): Promise<AuthResponse> {
-    const refreshToken = localStorage.getItem('refresh_token');
-    if (!refreshToken) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    
+    if (!token) {
       throw new Error('No refresh token available');
     }
 
-    // Para backend real:
-    // return this.request<AuthResponse>(API_ROUTES.AUTH.REFRESH, {
-    //   method: 'POST',
-    //   body: JSON.stringify({ refreshToken }),
-    // });
-
-    // Simulación
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          user: {
-            id: '1',
-            email: 'demo@parkintia.com',
-            name: 'Usuario Demo',
-            role: UserRole.USER,
-            avatar: 'https://ui-avatars.com/api/?name=Usuario+Demo',
-            createdAt: new Date(),
-            updatedAt: new Date()
-          },
-          token: `new-mock-jwt-token-${Date.now()}`,
-          refreshToken: `new-mock-refresh-token-${Date.now()}`
-        });
-      }, 1000);
-    });
+    // Por ahora, revalidar el token existente
+    const user = await this.validateToken(token);
+    
+    return {
+      user,
+      token,
+      refreshToken: token
+    };
   }
 }
 

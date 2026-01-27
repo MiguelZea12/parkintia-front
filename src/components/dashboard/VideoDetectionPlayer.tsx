@@ -22,7 +22,7 @@ export default function VideoDetectionPlayer({
   useEffect(() => {
     // Configurar URL del stream desde el backend NestJS (puerto 4000)
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-    const url = `${backendUrl}/camera/video-feed?cameraId=${cameraId}`;
+    const url = `${backendUrl}/cameras/video-feed?cameraId=${cameraId}`;
     setStreamUrl(url);
 
     // Obtener estado cada 2 segundos
@@ -37,7 +37,7 @@ export default function VideoDetectionPlayer({
   const fetchStatus = async () => {
     try {
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${backendUrl}/camera/parking-status-live?cameraId=${cameraId}`);
+      const response = await fetch(`${backendUrl}/cameras/parking-status-live?cameraId=${cameraId}`);
       
       if (!response.ok) throw new Error('Failed to fetch status');
       
