@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { COLORS } from '@/config/colors';
 import { parkingService } from '@/services/parking.service';
-import { Play, Pause, RotateCcw, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface VideoModalProps {
   isOpen: boolean;
@@ -26,7 +26,6 @@ const VideoModal: React.FC<VideoModalProps> = ({
   cameraId = 'default',
   videoSource
 }) => {
-  const [isPlaying, setIsPlaying] = useState(true);
   const [status, setStatus] = useState<any>(null);
   const [streamUrl, setStreamUrl] = useState<string>('');
 
@@ -53,23 +52,6 @@ const VideoModal: React.FC<VideoModalProps> = ({
       setStatus(data);
     } catch (err) {
       console.error('Error fetching status:', err);
-    }
-  };
-
-  const controlVideo = async (action: string) => {
-    try {
-      const targetId = videoSource || cameraId;
-      await parkingService.controlVideo(action as any, targetId);
-      
-      if (action === 'play') {
-        setIsPlaying(true);
-      } else if (action === 'pause') {
-        setIsPlaying(false);
-      } else if (action === 'restart') {
-        setIsPlaying(true);
-      }
-    } catch (err) {
-      console.error('Error controlling video:', err);
     }
   };
 
@@ -138,43 +120,11 @@ const VideoModal: React.FC<VideoModalProps> = ({
           {/* Footer with controls and stats */}
           <div className="p-4 bg-gray-800">
             <div className="flex items-center justify-between mb-4">
-              {/* Controles de video */}
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => controlVideo('play')}
-                  className={`inline-flex items-center px-4 py-2 rounded-md transition-colors ${
-                    isPlaying 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'bg-gray-700 text-white hover:bg-gray-600'
-                  }`}
-                  disabled={!isOnline}
-                >
-                  <Play size={16} className="mr-2" />
-                  Play
-                </button>
-                
-                <button
-                  onClick={() => controlVideo('pause')}
-                  className="inline-flex items-center px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors"
-                  disabled={!isOnline}
-                >
-                  <Pause size={16} className="mr-2" />
-                  Pausa
-                </button>
-                
-                <button
-                  onClick={() => controlVideo('restart')}
-                  className="inline-flex items-center px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors"
-                  disabled={!isOnline}
-                >
-                  <RotateCcw size={16} className="mr-2" />
-                  Reiniciar
-                </button>
-              </div>
-
+              {/* Controles eliminados - stream en vivo */}
+              
               {/* Estadísticas */}
               {status && (
-                <div className="flex items-center space-x-6 text-sm text-gray-300">
+                <div className="flex items-center space-x-6 text-sm text-gray-300 w-full justify-center">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-white">{status.totalSpaces}</div>
                     <div>Total Espacios</div>

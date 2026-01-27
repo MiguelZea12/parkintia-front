@@ -4,12 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { Camera, ParkingZone } from '@/types/parking';
 import { parkingService } from '@/services/parking.service';
 import ParkingZoneDrawer from '@/components/dashboard/ParkingZoneDrawer';
-import ParkingLiveView from '@/components/dashboard/ParkingLiveView';
 
 export default function CameraManagementPage() {
   const [cameras, setCameras] = useState<Camera[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
-  const [mode, setMode] = useState<'list' | 'configure' | 'live'>('list');
+  const [mode, setMode] = useState<'list' | 'configure'>('list');
   const [isLoading, setIsLoading] = useState(true);
   const [referenceImage, setReferenceImage] = useState<string>('');
 
@@ -61,7 +60,7 @@ export default function CameraManagementPage() {
       await parkingService.bulkCreateParkingZones(selectedCamera.id, zones);
       alert('Zonas guardadas correctamente');
       loadCameras();
-      setMode('live');
+      setMode('list');
     } catch (error) {
       console.error('Error saving zones:', error);
       alert('Error al guardar las zonas');
@@ -221,17 +220,6 @@ export default function CameraManagementPage() {
                   >
                     Configurar Zonas
                   </button>
-                  {camera.total_parking > 0 && (
-                    <button
-                      onClick={() => {
-                        setSelectedCamera(camera);
-                        setMode('live');
-                      }}
-                      className="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700"
-                    >
-                      Ver en Vivo
-                    </button>
-                  )}
                   <button
                     onClick={() => handleDeleteCamera(camera.id)}
                     className="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700"
@@ -293,19 +281,6 @@ export default function CameraManagementPage() {
               />
             )}
           </div>
-        </div>
-      )}
-
-      {/* VISTA EN VIVO */}
-      {mode === 'live' && selectedCamera && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">
-            Vista en Vivo - {selectedCamera.name}
-          </h2>
-          <ParkingLiveView
-            cameraId={selectedCamera.id}
-            videoSource={selectedCamera.videoFile || selectedCamera.streamUrl || ''}
-          />
         </div>
       )}
     </div>

@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Maximize2 } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
+import { parkingService } from '@/services/parking.service';
+import { Camera } from '@/types/parking';
 
 interface VideoDetectionPlayerProps {
   cameraId?: string;
@@ -14,66 +16,79 @@ export default function VideoDetectionPlayer({
   showControls = true,
   className = '' 
 }: VideoDetectionPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(true);
   const [status, setStatus] = useState<any>(null);
   const [error, setError] = useState<string>('');
   const [streamUrl, setStreamUrl] = useState<string>('');
+  const [activeCameraId, setActiveCameraId] = useState<string>(cameraId);
 
   useEffect(() => {
-    // Configurar URL del stream desde el backend NestJS (puerto 4000)
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-    const url = `${backendUrl}/cameras/video-feed?cameraId=${cameraId}`;
-    setStreamUrl(url);
+    let mounted = true;
+
+    const initializePlayer = async () => {
+      let currentCameraId = cameraId;
+      let currentStreamUrl = '';
+
+      // Si es default, buscar la primera cámara activa
+      if (cameraId === 'default') {
+        try {
+          const cameras = await parkingService.getCameras();
+          const activeCamera = cameras.find(c => c.isActive);
+          
+          if (activeCamera && mounted) {
+            currentCameraId = activeCamera.id;
+            setActiveCameraId(activeCamera.id);
+            // Usar getStreamUrl para manejar correctamente el mapeo de videoSource (ej. 'mobile')
+            currentStreamUrl = parkingService.getStreamUrl(activeCamera.id, activeCamera.streamUrl || activeCamera.videoFile || '');
+          }
+        } catch (err) {
+          console.error('Error finding active camera:', err);
+        }
+      } else {
+        // Si no es default, obtener la cámara para saber su source correcto si es posible
+        // O intentar usar la URL directa
+         currentStreamUrl = parkingService.getVideoFeedUrl(cameraId);
+      }
+
+      if (mounted) {
+        // Si no obtuvimos URL por el método de cámara activa, usar el fallback
+        if (!currentStreamUrl) {
+           currentStreamUrl = parkingService.getVideoFeedUrl(currentCameraId);
+        }
+        setStreamUrl(currentStreamUrl);
+        
+        // Cargar estado inicial
+        fetchStatus(currentCameraId);
+      }
+    };
+
+    initializePlayer();
 
     // Obtener estado cada 2 segundos
-    const interval = setInterval(fetchStatus, 2000);
-    
-    // Cargar estado inicial
-    fetchStatus();
+    const interval = setInterval(() => {
+        if (activeCameraId && activeCameraId !== 'default') {
+            fetchStatus(activeCameraId);
+        } else if (cameraId !== 'default') {
+            fetchStatus(cameraId);
+        }
+    }, 2000);
 
-    return () => clearInterval(interval);
-  }, [cameraId]);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [cameraId, activeCameraId]); // Dependencia de activeCameraId para reajustar si cambia
 
-  const fetchStatus = async () => {
+  const fetchStatus = async (id: string) => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${backendUrl}/cameras/parking-status-live?cameraId=${cameraId}`);
+      // Usar getParkingStatus para aprovechar la lógica de fallback a Python
+      // Si tenemos el activeCameraId, intentamos obtener su status
+      // Nota: getParkingStatusLive usa 'default' o ID, pero getParkingStatus es más robusto si tenemos el objeto
       
-      if (!response.ok) throw new Error('Failed to fetch status');
-      
-      const data = await response.json();
+      // Intentamos primero el endpoint live que soporta redirección
+      const data = await parkingService.getParkingStatusLive(id);
       setStatus(data);
     } catch (err) {
       console.error('Error fetching status:', err);
-      // No mostramos error aquí para no interrumpir el stream
-    }
-  };
-
-  const controlVideo = async (action: string) => {
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${backendUrl}/api/video-control`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action, cameraId }),
-      });
-
-      if (!response.ok) throw new Error('Failed to control video');
-
-      const data = await response.json();
-      
-      if (action === 'play') {
-        setIsPlaying(true);
-      } else if (action === 'pause') {
-        setIsPlaying(false);
-      } else if (action === 'restart') {
-        setIsPlaying(true);
-      }
-    } catch (err) {
-      console.error('Error controlling video:', err);
-      setError('Error al controlar el video');
     }
   };
 
@@ -96,7 +111,7 @@ export default function VideoDetectionPlayer({
               Total Espacios
             </div>
             <div className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-1">
-              {status.totalSpaces || 12}
+              {status.totalSpaces || 0}
             </div>
           </div>
           
@@ -128,8 +143,8 @@ export default function VideoDetectionPlayer({
           alt="Parking Detection Live Stream"
           className="w-full h-auto"
           onError={(e) => {
-            console.error('Error loading video stream');
-            setError('Error al cargar el stream de video. Asegúrate de que el servicio Python esté ejecutándose.');
+            console.error('Error loading video stream from:', streamUrl);
+            setError('Error al cargar el stream de video. Asegúrate de que el servicio Python esté ejecutándose y la cámara configurada.');
           }}
         />
         
@@ -155,34 +170,6 @@ export default function VideoDetectionPlayer({
       {/* Controles del video */}
       {showControls && (
         <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
-          <button
-            onClick={() => controlVideo('play')}
-            className={`inline-flex items-center px-4 py-2 rounded-md transition-colors gap-2 ${
-              isPlaying 
-                ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                : 'bg-gray-600 text-white hover:bg-gray-700'
-            }`}
-          >
-            <Play size={16} />
-            <span>Reproducir</span>
-          </button>
-          
-          <button
-            onClick={() => controlVideo('pause')}
-            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors gap-2"
-          >
-            <Pause size={16} />
-            <span>Pausar</span>
-          </button>
-          
-          <button
-            onClick={() => controlVideo('restart')}
-            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors gap-2"
-          >
-            <RotateCcw size={16} />
-            <span>Reiniciar</span>
-          </button>
-          
           <button
             onClick={handleFullscreen}
             className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors gap-2"
@@ -225,10 +212,10 @@ export default function VideoDetectionPlayer({
         <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
           <div className="flex flex-wrap justify-between items-center gap-4 text-sm">
             <span className="text-gray-600 dark:text-gray-400">
-              📹 Cámara: {cameraId}
+              📹 Cámara: {activeCameraId !== 'default' ? activeCameraId : cameraId}
             </span>
             <span className="text-gray-600 dark:text-gray-400">
-              🕐 Última actualización: {new Date(status.lastUpdate * 1000).toLocaleTimeString()}
+              🕐 Última actualización: {status.lastUpdate ? new Date(status.lastUpdate * 1000).toLocaleTimeString() : '-'}
             </span>
             <span className="text-gray-600 dark:text-gray-400">
               📊 Ocupación: {status.totalSpaces > 0 

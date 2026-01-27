@@ -96,7 +96,7 @@ export const parkingService = {
 
   async getParkingStatus(cameraId: string, mappingId?: string): Promise<ParkingStatusSummary> {
     // Si tenemos mappingId (cam-08...), pedimos directo a Python
-    if (mappingId && (mappingId.startsWith('cam-') || mappingId === 'default')) {
+    if (mappingId && (mappingId.startsWith('cam-') || mappingId === 'default' || mappingId === 'mobile')) {
        try {
          const response = await fetch(`http://localhost:5000/api/parking/status?cameraId=${mappingId}`);
          if (response.ok) return response.json();
@@ -128,7 +128,7 @@ export const parkingService = {
 
   getStreamUrl(cameraId: string, videoSource: string): string {
     // Si videoSource es una clave conocida (cam-08, cam-01), úsala como ID para el servicio Python
-    const idParam = videoSource && (videoSource.startsWith('cam-') || videoSource === 'default') 
+    const idParam = videoSource && (videoSource.startsWith('cam-') || videoSource === 'default' || videoSource === 'mobile') 
       ? videoSource 
       : cameraId;
     

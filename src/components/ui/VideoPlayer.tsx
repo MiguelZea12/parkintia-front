@@ -77,13 +77,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   return (
     <div className={`w-full h-full relative group bg-black ${className}`}>
       {streamUrl ? (
-        <video
+        <img
           src={streamUrl}
+          alt={cameraName}
           className="w-full h-full object-cover"
           onError={() => setError(true)}
-          autoPlay
-          muted
-          playsInline
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
